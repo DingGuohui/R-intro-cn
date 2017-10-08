@@ -34,6 +34,6 @@
 > 
 
 ### 2017年说明  
-原来文件放在 http://www.biosino.org/R/R-doc。但现在链接出问题了，经常有人找我要PDF版本的。现在没有时间整理，就把底稿公开出来（陆续还包括其它R文档的中文版本）。期望可以和开源社区可以一起整理，有兴趣者可以直接Email我：ghding@gmail.com。
+原来文件放在 http://www.biosino.org/R/R-doc 。但现在链接出问题了，经常有人找我要PDF版本的。现在没有时间整理，就把底稿公开出来（陆续还包括其它R文档的中文版本）。期望可以和开源社区可以一起整理，有兴趣者可以直接Email我：ghding@gmail.com。
 
 新版需要改写成Markdown格式，以GitBook的方式发布。
