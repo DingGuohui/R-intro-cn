@@ -1,0 +1,136 @@
+\chapter{成组，循环和条件控制}
+\hlabel{Loops and conditional execution}
+\cindex{循环和条件控制}
+
+\section{成组表达式}
+\hlabel{Grouped expressions}
+\cindex{成组表达式}
+
+\R{} 是一种表达式语言（expression language）因为它仅有的命令形式
+就是返回结果的函数和表达式。赋值操作实际上
+也是一个表达式结果的再分配，并且可以用在
+任何表达式中，甚至多重赋值
+也是允许的。
+
+命令可以用大括弧圈在一起 \code{\{\var{expr\_1};
+\var{\dots{}}; \var{expr\_m}\}}。此时，这一组命令的结果
+是该组中最后一个命令的值。既然一个组依然是一个表达式，
+它就可能放在括弧中，放在一个更大的表达式中，
+等等。
+
+\section{控制语句}
+\hlabel{Control statements}
+\cindex{控制语句}
+
+\subsection{条件控制：\code{if}语句}
+\hlabel{Conditional execution}
+\findex{if}
+
+\R{} 语言的条件语句形式为
+
+\examp{
+> if (\var{expr_1}) \var{expr_2} else \var{expr_3}
+}
+\findex{if}
+\findex{else}
+
+\noindent
+其中 \var{expr_1} 是控制条件并且产生一个唯一的逻辑值，
+表达式的其他部分则是不言而喻的。
+
+\index{f}{\verb.&&.}
+\index{f}{\verb.||.}
+``短路''（short-circuit）操作符 \code{\&\&} 和 \code{||} 常常用于
+\code{if} 语句的条件控制部分。这里要注意 \code{\&}
+和 \code{|} 将作用于向量的所有元素\footnote{译者注: 返回的也是一个和最长向量等长的向量.}，
+而 \code{\&\&} 和 \code{||}
+仅用于长度为1的向量，并且必要时才对第二个参数求值\footnote{译者注: ``短路''操作符一侧参数值为\code{TRUE}或者
+\code{FALSE}决定了另外一侧的参数是否继续求解.}。
+
+\findex{ifelse}
+\R{} 提供了 \code{if}/\code{else} 条件语句向量形式的函数
+\code{ifelse}。它的使用方式是 \code{ifelse(condition, a,
+b)}，最终返回一个和最长的参数向量同长的向量。
+\code{condition[i]} 为真时，该向量对应的元素是 \code{a[i]}，否则为
+\code{b[i]}。
+
+
+\subsection{循环控制：\code{for}循环，\code{repeat} 和 \code{while}}
+\hlabel{Repetitive execution}
+\findex{for}
+
+\R{} 语言有下面形式的 \code{for} 循环架构
+
+\examp{
+> for (\code{\var{name}} in \var{expr\_1}) \var{expr\_2}
+}
+
+\noindent
+其中 \code{\var{name}} 是循环变量，\var{expr\_1} 是一个
+向量表达式(常常以\code{1:20}这种形式出现)，而
+\var{expr\_2} 常常是根据虚拟变量 \emph{name} 
+而设计的成组表达式。在 \var{name} 访问 \var{expr\_1} 所有
+可以取到的值时，\var{expr\_2} 都会
+运行。
+
+下面是个例子。假定 \code{ind} 是分类指标向量（vector of class indicators），
+我们将依这种分类指标绘制 \code{y} 对 \code{x}的散点图。
+一种方法时用函数 \code{coplot()}\footnote{将在后面的
+的内容中讨论，或者用包 \pkg{lattice} 里面的函数\code{xyplot}。}
+产生对应因子各个水平的散点图。
+另外一种方法就是把所有图在屏幕上同时
+显示，如下面命令所示：
+
+\begin{example}
+> xc <- split(x, ind)
+> yc <- split(y, ind)
+> for (i in 1:length(yc)) {
+    plot(xc[[i]], yc[[i]]);
+    abline(lsfit(xc[[i]], yc[[i]]))
+  }
+\end{example}
+
+\findex{split}
+
+(函数 \code{split()} 通过某个因子把一个
+大的向量分成一系列小的向量。
+这是一个非常有用的函数，常常和
+盒状图一起使用。具体细节可以用 \code{help} 命令得到。)
+
+\begin{quotation}
+\strong{警告}：相比其他程序语言，\R{} 代码里面很少使用 
+\code{for()} 形式的循环语句。在~\R{} 里面用`完整对象'（whole object）形式
+可能既清晰又高效\footnote{译者注：\R{} 里面显式的循环语句在时间和空间的运行效率上几乎是不能忍受的。
+但显式的循环常常能避免的，我们可以利用函数对象对成组的元素计算值, 
+如用sum，mean等统计函数及apply、lapply 、sapply、tapply等函数都可以部分代替显式循环。}。
+\end{quotation}
+
+其他循环语句包括
+
+\examp{
+> repeat \var{expr}
+}
+\findex{repeat}
+
+\noindent
+和语句
+
+\examp{
+> while (\var{condition}) \var{expr}
+}
+\findex{while}
+
+\noindent
+
+
+关键字 \code{break}可以用于结束任何循环，甚至是非常规的。
+它是结束 \code{repeat} 循环的唯一办法。
+\findex{break}
+
+关键字 \code{next} 可以用来结束一次特定的循环，然后直接跳入
+``下一次''循环。
+\findex{next}
+
+控制语句的应用常常和
+\emph{函数}相关。这在下一章 \hlink{Writing your own
+functions}{编写你自己的函数}中 会详细讨论，同时也会引用更多的例子。

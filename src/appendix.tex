@@ -1,0 +1,708 @@
+\chapter{附录1 一个演示会话}
+\hlabel{A sample session}
+
+下面的会话\footnote{译者注: 下面的命令都是在Linux环境下写的。不过对~Windows 用户影响不大。}
+让你在操作中对
+\R{} 环境的一些特性有个简单的了解。你对系统的许多特性开始时可能
+有点不熟悉和困惑，但这些迷惑会很快
+消失的。
+
+登录，启动你的桌面系统。
+
+\begin{example}
+$ R
+\end{example}
+
+以适当的方式启动 \R{}\footnote{译者注：Windows 用户直接点击 R 的快捷图标进入。和其他 Windows 程序一样操作。}。 
+
+\R{} 程序开始，并且有一段引导语。
+
+(在 \R{} 里面，左边的提示符将不会被显示防止
+混淆。)
+
+\examp{help.start()}\\
+启动 \HTML{} 形式的在线帮助(使用你的计算机里面
+可用的浏览器)。你可以用鼠标
+点击上面的链接。
+
+最小化帮助窗口，进入下一部分。
+
+\begin{example}
+x <- rnorm(50)
+y <- rnorm(x)
+\end{example}
+产生两个伪正态随机数向量 \rmath{x} 和
+\rmath{y}。
+
+\examp{plot(x, y)} \\
+画二维散点图。一个图形窗口会自动出现。
+
+\examp{ls()} \\
+查看当前工作空间里面的 \R{} 对象。
+
+\examp{rm(x, y)} \\
+去掉不再需要的对象。(清空)。
+
+\examp{x <- 1:20} \\
+等价于 \rmath{x = (1, 2, \dots{}, 20)}。
+
+\examp{w <- 1 + sqrt(x)/2} \\
+标准差的`权重'向量。
+
+\begin{example}
+dummy <- data.frame(x=x, y= x + rnorm(x)*w)
+dummy
+\end{example}
+创建一个由\rmath{x} 和 \rmath{y}构成的双列\emph{数据框}，
+查看它们。
+
+\begin{example}
+fm <- lm(y ~ x, data=dummy)
+summary(fm)
+\end{example}
+拟合 \rmath{y} 对 \rmath{x} 的简单线性回归，查看
+分析结果。
+
+\begin{example}
+fm1 <- lm(y ~ x, data=dummy, weight=1/w^2)
+summary(fm1)
+\end{example}
+现在我们已经知道标准差，做一个加权回归。
+
+\examp{attach(dummy)} \\
+让数据框中的列项可以像一般的变量那样使用。
+
+\examp{lrf <- lowess(x, y)} \\
+做一个非参局部回归。
+
+\examp{plot(x, y)} \\
+标准散点图。
+
+\examp{lines(x, lrf\$y)} \\
+增加局部回归曲线。
+
+\examp{abline(0, 1, lty=3)} \\
+真正的回归曲线：(截距 0，斜率 1)。
+
+\examp{abline(coef(fm))} \\
+无权重回归曲线。
+
+\examp{abline(coef(fm1), col = "red")} \\
+加权回归曲线。
+
+\examp{detach()} \\
+将数据框从搜索路径中去除。
+
+\begin{example}
+plot(fitted(fm), resid(fm),
+	 xlab="Fitted values",
+	 ylab="Residuals",
+	 main="Residuals vs Fitted")
+\end{example}
+一个检验异方差性（heteroscedasticity）的标准回归诊断图。
+你可以看见吗？
+
+\examp{qqnorm(resid(fm), main="Residuals Rankit Plot")} \\
+用正态分值图检验数据的偏度（skewness），峰度（kurtosis）和异常值（outlier）。
+（这里没有多大的用途，只是演示一下而已。）
+
+\examp{rm(fm, fm1, lrf, x, dummy)} \\
+再次清空。
+
+第二部分将研究
+Michaelson 和 Morley 测量光速的经典实验。这个数据集可以
+从对象 \code{morley} 中得到，但是我们从中读出数据以演示
+函数 \code{read.table} 的作用。
+
+\begin{example}
+filepath <- system.file("data", "morley.tab" , package="datasets")
+filepath
+\end{example}
+得到文件路径。
+
+\examp{file.show(filepath)} \\
+可选。查看文件内容。
+
+\begin{example}
+mm <- read.table(filepath)
+mm
+\end{example}
+以数据框的形式读取 Michaelson 和 Morley 的数据，并且查看。
+数据由五次实验(\code{Expt} 列)，每次运行 20 次
+(\code{Run} 列)的观测得到。数据框中的 \code{sl} 是光速的记录。
+这些数据以适当形式编码。
+
+\begin{example}
+mm$Expt <- factor(mm$Expt)
+mm$Run <- factor(mm$Run)
+\end{example}
+将 \code{Expt} 和 \code{Run} 改为因子。
+
+\examp{attach(mm)} \\
+让数据在位置 3 (默认) 可见（即可以直接访问）。
+
+\examp{plot(Expt, Speed, main="Speed of Light Data", xlab="Experiment No.")} \\
+用简单的盒状图比较五次实验。
+
+\begin{example}
+fm <- aov(Speed ~ Run + Expt, data=mm)
+summary(fm)
+\end{example}
+分析随机区组，`runs' 和 `experiments' 作为因子。
+
+\begin{example}
+fm0 <- update(fm, . ~ . - Run)
+anova(fm0, fm)
+\end{example}
+拟合忽略 `runs' 的子模型，并且对模型更改前后
+进行方差分析。
+
+\begin{example}
+detach()
+rm(fm, fm0)
+\end{example}
+在进行下面工作前，清空数据。
+
+我们现在查看更有趣的图形显示特性：等高线和影像显示。
+
+\begin{example}
+x <- seq(-pi, pi, len=50)
+y <- x
+\end{example}
+\rmath{x} 是一个在
+$-\pi\leq x \leq \pi$ 内等间距的50个元素的向量，
+\rmath{y} 类似。
+
+\begin{example}
+f <- outer(x, y, function(x, y) cos(y)/(1 + x^2))
+\end{example}
+\rmath{f} 是一个方阵，行列分别被 \rmath{x}
+和 \rmath{y} 索引，对应的值是函数
+$\cos(y)/(1 + x^2)$ 的结果。
+
+\begin{example}
+oldpar <- par(no.readonly = TRUE)
+par(pty="s")
+\end{example}
+保存图形参数，设定图形区域为``正方形''。
+
+\begin{example}
+contour(x, y, f)
+contour(x, y, f, nlevels=15, add=TRUE)
+\end{example}
+绘制 \rmath{f} 的等高线；增加一些曲线显示细节。
+
+\examp{fa <- (f-t(f))/2} \\
+\code{fa} 是 \rmath{f} 的``非对称部分''(\code{t()} 是转置
+函数)。
+
+\examp{contour(x, y, fa, nlevels=15)} \\
+画等高线，\dots{}
+
+\examp{par(oldpar)}\\
+\dots{} 恢复原始的图形参数。
+
+\begin{example}
+image(x, y, f)
+image(x, y, fa)
+\end{example}
+绘制一些高密度的影像显示，(如果你想要，你可以保存
+它的硬拷贝)， \dots{}
+
+\examp{objects(); rm(x, y, f, fa)}\\
+\dots{} 在继续下一步前，清空数据。
+
+\R{} 可以做复数运算。
+
+\begin{example}
+th <- seq(-pi, pi, len=100)
+z <- exp(1i*th)
+\end{example}
+\code{1i} 表示复数 \rmath{i}。
+
+\begin{example}
+par(pty="s")
+plot(z, type="l")
+\end{example}
+图形参数是复数时，表示虚部对实部画图。这可能是
+一个圆。
+
+\examp{w <- rnorm(100) + rnorm(100)*1i}\\
+假定我们想在这个圆里面随机抽样。一种方法
+将让复数的虚部和实部值是标准正态随机
+数 \dots{}
+
+\examp{w <- ifelse(Mod(w) > 1, 1/w, w)} \\
+\dots{} 将圆外的点映射成它们的倒数。
+
+\begin{example}
+plot(w, xlim=c(-1,1), ylim=c(-1,1), pch="+",xlab="x", ylab="y")
+lines(z)
+\end{example}
+所有的点都在圆中，但分布不是
+均匀的。
+
+\begin{example}
+w <- sqrt(runif(100))*exp(2*pi*runif(100)*1i)
+plot(w, xlim=c(-1,1), ylim=c(-1,1), pch="+", xlab="x", ylab="y")
+lines(z)
+\end{example}
+第二种方法采用均匀分布。现在圆盘中的点
+看上去均匀多了。
+
+\examp{rm(th, w, z)} \\
+再次清空。
+
+\examp{q()}\\
+离开 \R{} 程序。你可能被提示是否保存 \R{} 工作空间，
+不过对于一个调试性的会话，你可能不想
+保存它。
+
+\chapter{附录2 调用 R}
+\hlabel{Invoking R}
+
+\section{ 以命令行调用 R}
+\hlabel{Invoking R from the command line}
+
+在 UNIX 或者 Windows 的命令模式下操作时，
+命令 \samp{R} 可以用下面的形式
+来启动 \R{} 的主程序
+
+\examp{
+\code{R} [\var{options}] [\code{<}\var{infile}] [\code{>}\var{outfile}],
+}
+
+\noindent
+我们还可以通过 \code{R CMD} 接口来启动。该接口是各种不想被``直接''访问的 
+(如，处理 \R{} 文档格式的文件或者
+操作另外加上去的包) \R{} 工具的一种包装。
+
+在 UNIX 下面，你要确信环境变量
+\env{TMPDIR} 还没有设置或者它已指向了一个合理的路径来
+创建临时文件和目录。
+
+许多可选项是用来控制一个 
+\R{} 会话的起始和终止时的事务。启动机制将会在下面描述(查看帮助文档中
+关于 \samp{Startup} 的主题，下面的内容
+有一些 Windows-特异的细节)。
+
+\begin{itemize}
+\item
+除非给定 \code{--no-environ}，\R{} 将会自动搜索用户和位置文件
+来设置环境变量。位置文件名字
+是由环境变量
+\env{R\_ENVIRON} 指定的；如果这没有设定，默认是\\
+\texttt{\$R\_HOME/etc/Renviron.site}
+(如果它存在)。用户文件是在当前或者用户根目录下面的 \file{.Renviron}。
+这些文件包含
+以 \samp{\var{name}=\var{value}} 格式赋值的行
+(\code{help(Startup)} 可以得到更准确的描述)。你想设定的
+变量可能还包括 \env{R\_PAPERSIZE} (默认的页面类型/大小)，
+\env{R\_PRINTCMD} (默认的打印命令) 和 \env{R\_LIBS} (指定
+搜索添加包 \R{} 库的树型列表)。
+
+\item
+\R{} 搜索位置广泛的启动初试设置文件，除非你已经设置了命令可选项
+\code{--no-site-file}。配置文件的名字可以通过
+环境变量 \env{R\_PROFILE} 访问。如果
+该变量没有设置，将会使用默认的文件 \file{\$R\_HOME/etc/Rprofile.site}
+（如果它存在）。
+
+\item
+然后，除非 \code{--no-init-file} 被设定，\R{} 会依次搜索当前目录或者用户根目录
+一个叫 \file{.Rprofile} 的文件
+然后载入它。
+
+\item
+如果有 \file{.RData} 文件，它将会被载入(除非指定
+\code{--no-restore} 或者 \code{--no-restore-data})。
+
+\item
+最后如果 \code{.First} 存在，它也会被执行。
+这个函数(在 \R{} 对话结束时运行的 \code{.Last} 也一样)
+可以在适当的启动配置文件中定义，或者
+放在文件 \file{.RData} 中。
+\end{itemize}
+
+此外，有可选项控制
+\R{} 进程的内存使用情况 (参考在线帮助关于 \samp{Memory} 的主题
+)。用户一般很少用到这些设置，除非你
+想用尽 \R{} 的所有内存。
+
+\R{} 接受如下的命令可选项。
+
+\begin{longtable}{lp{0.68\textwidth}}
+\code{--help} \\
+\code{-h} &
+向标准输出打印简短的帮助信息并且顺利退出。\\
+
+\code{--version} &
+向标准输出打印版本信息并且顺利退出。 \\
+
+\code{--encoding=\var{enc}} &
+对控制台或者
+\code{stdin} 的输入指定编码方式。 这和 \code{iconv} 类似：
+查看它的帮助文件。\\
+
+\code{RHOME} &
+向标准输出打印 \R{} 的``根目录''并且顺利退出。
+独立于 shell 脚本和 man 页，
+\R{} 安装过程中会把所有东西 (执行文件，包，等等)
+都放在这个目录下。\\
+
+\code{--save} \\
+\code{--no-save} &
+设置 \R{} 会话结束时是否保存数据集。
+如果在一次交互式会话中，二者都没有给定，那么
+当用户键入 \kbd{q()} 退出时，会要求决定是否保存数据；
+在非交互式运行时，其中一种方式要求设定。 \\
+
+\code{--no-environ} &
+不读取任何用户文件去设定环境变量。 \\
+
+\code{--no-site-file} &
+启动时不读取任何位置文件。 \\
+
+\code{--no-init-file} &
+启动时不读取任何用户设置文件。 \\
+
+\code{--restore} \\
+\code{--no-restore} \\
+\code{--no-restore-data} &
+控制是否在启动时恢复镜像文件(指的是 \R{} 启动时目录下的文件 \file{.RData})。
+默认是
+恢复。 (\code{--no-restore} 暗示所有指定的可选项
+\code{--no-restore-*}。)\\
+
+\code{--no-restore-history} &
+控制是否在启动时恢复历史文件(常常是 \R{} 启动目录下的文件 \file{.Rhistory}，
+可以通过环境变量
+\env{R\_HISTFILE} 重新设定)。默认是
+恢复。\\
+
+\code{--vanilla} &
+同时设定了 \code{--no-save}, \code{--no-environ}
+\code{--no-site-file}, \code{--no-init-file} 和 \code{--no-restore}。 \\
+
+\code{--no-readline} &
+(仅用于 UNIX) 禁止通过 \strong{readline} 进行命令行编辑。这对
+在 Emacs 中用 \sm{ESS} (``Emacs
+Speaks Statistics'') 包运行 \R{} 非常有用。在\hlink{The command-line editor}{命令行编辑器}部分 
+可以得到更多的信息。 \\
+
+\code{--ess} &
+(仅用于 Windows)通过 \code{R-inferior-mode} 模式在 \sm{ESS} 中启动 \code{Rterm}。 \\
+
+\code{--min-vsize=\var{N}} \\
+\code{--max-vsize=\var{N}} &
+通过设定``向量堆栈''（vector heap）大小为 \var{N} 字节，
+指定可变大小对象的最大和最小内存占有量。
+\var{N} 要么是一个整数，要么是以分别表示 `Giga' (2\^{}30)，`Mega' (2\^{}20)，
+`Kilo' (2\^{}10，计算机)，和`kilo' (1000，标准)的 \samp{G}，
+\samp{M}，\samp{K} 和 \samp{k}结尾的整数。\\
+
+\code{--min-nsize=\var{N}} \\
+\code{--max-nsize=\var{N}} &
+通过设定``cons 单元''（cons cells）的数目为 \var{N}， 
+指定不变大小对象的最大和最小内存占有量。
+参看前面关于 \var{N} 的细节内容。在32位机里面，一个 cons 单元等于28个字节，
+而在64位机里面，常常是 56 个字节。\\
+
+\code{--max-ppsize=\var{N}} &
+设定指针保护栈的最大大小为 \var{N}
+个位点。默认值为 10000，有时需要增加该值以适应
+大的复杂计算。现在允许的最大设定值为
+100000。\\
+
+\code{--max-mem-size=\var{N}} &
+(仅适用于 Windows) 设定用于 \R{} 对象和工作空间内存总量的限度。
+默认设置为
+1024Mb 和机器上的物理内存，但最小要求是
+16Mb。\\
+
+\code{--quiet} \\
+\code{--silent} \\
+\code{-q} &
+不显示起始的版权和欢迎信息。 \\
+
+\code{--slave} &
+让 \R{} 尽可能平静地运行。该选项用于
+支持利用 \R{} 结果作为输入的程序。 \\
+
+\code{--verbose} &
+在 \R{} 选项
+\code{verbose} 设定为 \code{TRUE}时，显示运行过程中更多的信息。\R{} 使用这个选项
+控制诊断信息的输出。 \\
+
+\code{--debugger=\var{name}} \\
+\code{-d \var{name}} &
+(仅用于 UNIX) 通过调试器 \var{name} 运行 \R{}。注意在这种情况下，进一步的命令
+行可选项会被忽略，不过可以在
+\R{} 从内部调试器开始执行时给定。 \\
+
+\code{--gui=\var{type}} \\
+\code{-g \var{type}} &
+(仅用于 UNIX) 使用 \var{type} 作为用户图形接口(注意这也包括
+交互式图形接口)。现在，可能用于
+\var{type} 的值是 \samp{X11}（默认，假定已经安装 \samp{Tcl/Tk}），
+ \samp{Tk}，\samp{gnome}（假定
+\acronym{GNOME} 已经安装）和 \samp{none}。\\
+
+\code{--args} &
+这个标记会让剩余的命令行忽略：
+这对想用
+\code{commandArgs()} 得到返回值非常的有用。 \\
+\end{longtable}
+
+注意，可以用常规的方法(用
+\samp{$<$} 和 \samp{$>$}) 重定向输入输出。除了 Windows 9X/ME 系统，警告和错误信息会被传给
+标准错误信息流 (\code{stderr})。
+
+命令 \code{R CMD} 允许调用各种可以连接
+\R{} 的不能``直接''访问的工具。
+一般的形式为
+
+\examp{
+R CMD \var{command} \var{args}
+}
+
+\noindent
+其中 \var{command} 是工具名，\var{args} 是传递给它
+的参数。
+
+现在，下面的工具可以调用
+
+\begin{longtable}{lp{0.72\textwidth}}
+\code{BATCH} &
+批处理模式运行 \R{}。\\
+\code{COMPILE} &
+(仅用于 UNIX)用 \R{} 编译文件。 \\
+\code{SHLIB} &
+为动态载入创建共享库（shared library）。\\
+\code{INSTALL} &
+安装额外添加的包。 \\
+\code{REMOVE} &
+去除额外添加的包。 \\
+\code{build} &
+创建(也就是打包)额外添加的包。\\
+\code{check} &
+选择额外添加的包。 \\
+\code{LINK} &
+(仅用于 UNIX)创建可执行程序的前端。 \\
+\code{Rprof} &
+\R{} 的后处理（Post-process）设置文件。 \\
+\code{Rdconv} &
+将 Rd 格式转换成各种其他格式，包括 \HTML{}，Nroff，
+\LaTeX{}，纯文本和 \sm{S} 文档格式。\\
+\code{Rd2dvi} &
+将 Rd 格式转换成 DVI/PDF 格式。 \\
+\code{Rd2txt} &
+将 Rd 格式转换成文本格式。 \\
+\code{Sd2Rd} &
+将 S 文件转换成 Rd 格式。 \\
+\code{config} &
+(仅用于 UNIX) 获得配置信息。\\
+\end{longtable}
+
+使用
+
+\begin{example}
+R CMD \var{command} --help
+\end{example}
+
+\noindent
+获得可以用 \code{R CMD} 接口访问的工具
+的使用信息。
+
+\section{ 在 Windows 下调用 R}
+\hlabel{Invoking R under Windows}
+
+有两种方法可以在 Windows 下运行 \R{}。在终端窗口
+(如\code{cmd.exe}，\code{command.com}，或者能力更强的脚本)里面
+运行 \code{R.exe} 或者更直接的 \code{Rterm.exe}时，前面
+提到的方法可能都可以使用它们主要用于
+批处理)。对于交互式用户，可以使用基于控制台的图形界面
+(\code{Rgui.exe})。
+
+在 Windows 下面的启动过程和 UNIX 中的过程非常相似，
+但是必须指明`根目录'（home directory），因为
+Windows 系统不会定义这个目录。如果定义了环境变量 \env{R\_USER}，
+则根目录由这个变量指定。接下来，如果环境变量
+\env{HOME} 定义了，它也会指定根目录。通过这两个用户可控的设置，
+\R{} 期望可以找到用户定义的根目录。
+它首先采用 Windows 系统的"私人"目录
+(典型的私人目录如 Windows XP 系统中的 
+\code{C:$\backslash$Documents and Settings$\backslash$username$\backslash$My Documents}
+)。如果这样不成功并且
+环境变量 \env{HOMEDRIVE} 和 \env{HOMEPATH} 都设定了
+(它们常常会在 Windows NT/2000/XP 系统下定义)，这些将会决定根目录。
+如果这些都没有设定，那么就把
+起始目录当成根目录。
+
+环境变量可以以 \samp{\var{name}=\var{value}} 形式
+放在命令行的尾部。
+
+下面的命令行可选项在
+调用 \code{RGui.exe} 时可用。
+
+\begin{longtable}{lp{0.68\textwidth}}
+\code{--mdi} \\
+\code{--sdi} \\
+\code{--no-mdi} &
+决定以 MDI 程序(默认，
+在一个主窗口中可以运行多个子窗口)还是SDI 软件
+(图形，页面和控制台的多重高层次窗口)的形式运行 \code{Rgui}。\\
+
+\code{--debug} &
+允许 \code{Rgui} 的菜单项``Break to debugger''可用，并且可以
+在命令行处理中设定断点。 \\
+\end{longtable}
+
+在 Windows 系统中，你可以用 \code{R CMD} 运行你指定的 \file{*.bat}
+和 \file{*.exe} 而不需要内部命令。
+下面的环境变量可用于这个命令中：
+\env{R\_HOME}，\env{R\_VERSION}，\env{R\_CMD}，\env{R\_OSTYPE}，\env{PATH}，
+\env{PERL5LIB}，和 \env{TEXINPUTS}。例如，如果你设置的路径中有
+\file{latex.exe}，那么
+
+\begin{example}
+R CMD latex.exe mydoc
+\end{example}
+\noindent
+将对 \file{mydoc.tex} 运行 \LaTeX{} 并且把 \R{} 的
+\file{share/texmf} 宏包路径加到环境变量 \env{TEXINPUTS} 中。
+
+\section{ 在 Mac OS X 下调用 R}
+\hlabel{Invoking R under Mac OS X}
+
+在 Mac OS X 下面运行 \R{} 有两种方式。在 Terminal.app 窗口调用
+\code{R} 时，前面提到的方法都可用。
+同样还有基于控制台的图形界面 (\code{R.app})。它默认安装在
+系统的 \code{Applications} 文件夹中。
+它是一个标准的双击启动的 Mac OS X 程序。
+
+Mac OS X 的启动流程和 UNIX 下的流程非常相似。
+`根目录'在 R.framework 中设置。启动目录和当前目录
+设置为用户的根目录，当然，你可以
+在图形界面中的参数选择窗口中重新设定一个
+不同的启动目录。
+
+\chapter{附录3 命令行编辑器}
+\hlabel{The command-line editor}
+
+\section{预备工作}
+
+如果你的 UNIX 系统已经安装了 \acronym{GNU} \strong{readline} 库，
+那么 \R{} 配置中允许在 UNIX 下编译 \R{} 代码，调用内置的
+命令行编辑器，编辑和重新调用以前用过的命令。
+注意：该附录提到的接口\strong{不是}用于 UNIX 系统的
+\acronym{GNOME}接口，而仅仅用于标准的命令行
+接口。
+
+如果启动时设置了参数 \code{--no-readline} (使用 \acronym{ESS} 时非常有用\footnote{
+`Emacs Speaks Statistics' 包；参见 \acronym{URL}
+\url{http://ESS.R-project.org}})， 
+则该命令不可用。
+
+Windows 版本的 \R{} 有简单的命令行编辑功能；
+见 \acronym{GUI} 界面的 \samp{Help} 菜单下的 \samp{Console}，已经
+描述 \code{Rterm.exe} 的命令行操作的
+文件 \file{README.Rterm}。
+
+当使用 \strong{readline} 写 \R{} 命令时，下面
+描述的函数可用。
+
+这些函数常常是控制字符或者是元字符（Meta character）。控制字符，如
+\kbd{Control-m} 表示同时按住
+\key{CTRL} 和 \key{m} 键，并且以
+\kbd{C-m} 形式表示。元字符，如 \kbd{Meta-b} 表示同时按住
+\key{META}\footnote{在 PC 键盘上，它常常是
+Alt 键，偶尔是`Windows'键。} 和 \key{b} 键，下面以
+\kbd{M-b} 形式记录。如果你的终端没有
+\key{META} 键，你可以用 \kbd{ESC} 开始的两个字符序列
+键入元字符。因此对于 \kbd{M-b}，你可以键入
+\key{ESC}\key{b}。\kbd{ESC} 字符序列在
+有真正元键的终端也是允许的。注意这种情况
+对元字符有特殊意义的。
+
+\section{编辑}
+
+\R{} 保存你键入的命令行的历史，
+包括错误的命令。历史文件中的命令可以被重新调用，修改
+以新的命令的形式重新提交。在
+Emacs-形式的命令行编辑中，任何直接的输入
+都会将字符直接插入到你所编辑的命令中，
+并且取代光标右侧的字符。
+\emph{vi} 输入模式是通过 \kbd{M-i} 或
+\kbd{M-a} 启动，字符可以被键入并且通过键入
+\key{ESC} 结束输入模式。
+
+任何时候键入 \key{RET} 都会使得命令
+重新被提交。
+
+其他的编辑命令在下面的表中有所总结。
+
+\section{命令行编辑总结}
+
+\textbf{重新调用命令和垂直移动}
+
+\begin{longtable}{lp{0.68\textwidth}}
+\code{C-p} &
+跳到前一个命令(回溯历史文件)。\\
+\code{C-n} &
+跳到下一个命令(前溯历史文件)。\\
+\code{C-r \var{text}} &
+搜索含有字符串 \var{text} 的最后一个命令。 \\
+\end{longtable}
+
+在大多数终端，你可以使用上下键分别代替
+\kbd{C-p} 和 \kbd{C-n}。
+
+\textbf{水平移动指针}
+
+\begin{longtable}{lp{0.68\textwidth}}
+\code{C-a} &
+回到命令行开头。 \\
+\code{C-e} &
+跳到命令行结束。 \\
+\code{M-b} &
+回溯一个单词。 \\
+\code{M-f} &
+前溯一个单词。 \\
+\code{C-b} &
+回溯一个字符。 \\
+\code{C-f} &
+前溯一个字符。 \\
+\end{longtable}
+
+在大多数终端，你可以使用左右键分别代替
+\kbd{C-b} 和 \kbd{C-f}。
+
+\textbf{编辑和再提交}
+
+\begin{longtable}{lp{0.68\textwidth}}
+\code{\var{text}} & 
+在光标处插入文本 \var{text}。 \\
+\code{C-f \var{text}} &
+在光标后插入 \var{text}。 \\
+\code{\key{DEL}} &
+删除前面的字符(光标左侧)。 \\
+\code{C-d} &
+删除光标处的字符。 \\
+\code{M-d} &
+删除光标处单词以外的部分，并且``保存''它们。 \\
+\code{C-k} &
+删除光标到命令结束的部分，并且``保存''它们。 \\
+\code{C-y} &
+插入最后``保存''的文本。 \\
+\code{C-t} &
+转置光标处的文本。 \\
+\code{M-l} & 
+将字符转换成小写字符。 \\
+\code{M-c} &
+将单词转换成大写。 \\
+\code{\key{RET}} &
+重新向 \R{} 提交命令。 \\
+\end{longtable}
+
+最后的 \key{RET} 命令将会终止命令行编辑。

@@ -1,0 +1,1029 @@
+\chapter{图形工具}
+\hlabel{Graphics}
+
+图形工具是 \R{} 环境里面一个非常重要和多用途的组成部分。
+我们可以用这些图形工具显示各种各样的统计图并且创建一些
+全新的图。
+
+图形工具既可交互式使用，也可以批处理使用。在许多情况下，
+交互式使用是最有效的。
+打开 \R{} 时，它会启动一个图形\emph{设备驱动
+}（device driver）。该驱动会打开特定的\emph{图形窗口}（graphics window）以显示
+交互式的图片。尽管这些都是自动实现的，了解
+用于 UNIX 系统的 \code{X11()} 命令和 Windows 系统的
+\code{windows()} 命令是非常有用的。
+
+一旦设备驱动启动，\R{} 绘图命令可以用来
+产生统计图或者设计全新的图形显示。
+
+绘图命令可以分成了三个基本的类：
+
+\begin{itemize}
+\item
+\strong{高级}绘图命令在图形设备上产生一个新的图区，
+它可能包括坐标轴，标签，标题等等。
+\item
+\strong{低级}画图命令会在一个已经存在的图上加上更多
+的图形元素，如额外的点，线和标签。
+\item
+\strong{交互式}图形命令允许你交互式地
+用定点设备（如鼠标）
+在一个已经存在的图上添加图形信息或者提取图形信息。
+\end{itemize}
+
+此外，\R{} 有一系列\emph{图形参数}。这些图形参数
+可以被修改从而定制你的图形环境。
+
+这本手册仅仅描述了`基本'图形绘制命令。在包 \pkg{grid} 里面有一个
+独立的图形子系统与基本图形包同时存在。它的功能非常的强大当然也
+比较难用。有一个基于 \pkg{grid} 的推荐包
+\pkg{lattice} 提供了产生类似 ~\sm{S} 里面 \emph{Trellis} 系统中的
+多重面板图（multi-panel plot）的工具。
+
+\section{高级绘图命令}
+\hlabel{High-level plotting commands}
+
+高级图形显示函数是用来产生输入数据的完整图片。
+其中适当的
+坐标轴，标签和标题会自动产生(除非你有其他要求)。
+ 高级图形显示命令会开始一个新的图区，
+必要时会清空当前的图区。
+
+\subsection{\code{plot()} 函数}
+\hlabel{The plot() function}
+\findex{plot}
+
+在 \R{} 里面最常用的一个图形函数是
+\code{plot()}。这是一个\emph{泛型}函数：产生的图形
+依赖于第一个参数的类型或者\emph{类}。
+
+\begin{longtable}{lp{0.72\textwidth}}
+\code{plot(\var{x}, \var{y})} \\
+\code{plot(\var{xy})} &
+如果 \var{x} 和 \var{y} 是向量，则 \code{plot(\var{x}, \var{y})}
+将产生 \var{y} 对 \var{x} 的散点图。
+用包含两个分量\var{x} 和 \var{y} 的列表或是一个双列的矩阵
+作为一个参数(第二种形式)也能得到一样的结果。\\
+
+\code{plot(\var{x})} &
+如果 \var{x} 是一个时间序列，这将产生一个时间序列图。如果
+\var{x} 是一个数值向量，它将产生一个向量值对该向量索引的图。
+如果 \var{x} 是一个复向量，
+它将会产生一个向量元素的虚部对实部的图。\\
+
+\code{plot(\var{f})} \\
+\code{plot(\var{f}, \var{y})} &
+\var{f}是一个因子对象，\var{y} 是一个数值向量。第一种形式产生
+\var{f} 的直方图；第二种形式产生
+\var{y} 在 \var{f} 的各种水平下的盒状图。 \\
+
+\code{plot(\var{df})} \\
+\code{plot(\~{} \var{expr})} \\
+\code{plot(\var{y} \~{} \var{expr})} &
+\var{df} 是一个数据框，\var{y} 是任何对象，\var{expr} 是一个对象名
+被 `\code{+}' 分割的表列(如，\code{a + b + c})。前两种将产生
+数据框中变量的分布图（第一种形式）和
+一系列指定对象的分布图(第二种形式)。第三种形式
+将得到 \var{y} 相对 \var{expr} 中各个对象画的图。
+\end{longtable}
+
+\subsection{显示多元数据}
+\hlabel{Displaying multivariate data}
+
+\R{} 为描绘多元数据提供了两个非常有用的函数。
+如果 \code{X} 是一个数值矩阵或者数据框，命令
+
+\begin{example}
+> pairs(X)
+\end{example}
+\findex{pairs}
+
+\noindent
+将产生 \code{X} 的列之间两两相对的成对散点图阵列（pairwise scatterplot matrix）。
+也就是说，\code{X}的每一列相对
+\code{X} 的所有其他列而产生 \rmath{n(n-1)} 个
+图，并且把这些图以阵列个形式显示在图区。这个
+图形阵列的行列图形尺度一致。
+
+用 \emph{coplot} 处理三个或者四个变量的产生的图可能会更清晰。
+如果 \code{a} 和 \code{b} 是数值向量，\code{c}
+是数值向量或者因子对象(长度都一致)，那么
+下面的命令
+
+\begin{example}
+> coplot(a ~ b | c)
+\end{example}
+\findex{coplot}
+
+\noindent
+将产生一系列在给定的 \code{c} 值下\code{a} 对 \code{b} 的散点图。
+\code{c} 是因子对象，这就简单的表示
+\code{a} 在 \code{c} 各个水平下对 \code{b} 画的散点图。当
+\code{c} 是数值向量，它将会被分割成一系列\emph{条件区间
+}（conditioning intervals），对于任一区间，区间内 \code{c} 
+对应的\code{a}，\code{b} 值将绘制 \code{a} 对 \code{b}的散点图。
+区间的数值和位置由 \code{coplot()} 的参数 \code{given.values=}
+控制——函数 \code{co.intervals()} 用于选择区间。
+你还可以对两个\emph{给定}的变量使用下面的
+命令
+
+\begin{example}
+> coplot(a ~ b | c + d)
+\end{example}
+
+\noindent
+产生任何在 \code{c} 和 \code{d} 联合区间内的
+\code{a} 对 \code{b} 的散点图。
+
+函数 \code{coplot()} 和 \code{pairs()} 都有一个参数
+\code{panel=}。这个参数可以用来设置各个面板中的图形样式。
+默认值 \code{points()} 用来产生散点图，但是通过将低级命令
+作用于两个向量\code{x} 和 \code{y} 并赋值给参数\code{panel=}，
+你可以产生任何你所期望的图。 一个用于coplot的 panel 功能的例子
+是命令 \code{panel.smooth()}。
+
+\subsection{图形显示}
+\hlabel{Display graphics}
+
+其他高级绘图函数可以产生多种类型的图。一些例子是：
+
+\begin{longtable}{lp{0.63\textwidth}}
+\texttt{tsplot(x\_1, x\_2, \dots{})} &
+\findex{tsplot}
+在一个相同的尺度里面绘制任意数目的时间序列。
+在\code{x\var{\_i}}都是一般的数值向量时，这种自动的同步标化的特性依然很有用。
+这时，它们相对\rmath{1, 2, 3, \dots{}}绘制\footnote{译者注: 原文为``
+This automatic simultaneous scaling feature is also useful when the \code{x\var{_i}}'s
+are ordinary numeric vectors, in which case they are plotted against the
+numbers \rmath{1, 2, 3, \dots{}}.''}。\\
+
+\verb.qqnorm(x). \\
+\verb.qqline(x). \\
+\verb.qqplot(x, y). &
+\findex{qqnorm}
+\findex{qqline}
+\findex{qqplot}
+分位比较图。第一种形式显示数值向量
+\code{x} 相对期望的正态有序分值（Normal order scores）的比较图(正态分值图)；
+第二种形式是在这个图上加一条理论上的分位对分位的直线。
+第三种形式产生\code{x} 的分位对 \code{y} 的分位的图以
+比较二者的分布是否一致。\\
+
+\verb.hist(x). \\
+\code{hist(x, nclass=\var{n})} \\
+\texttt{hist(x, breaks=\var{b}, \dots{})} &
+\findex{hist}
+产生数值向量 \code{x} 的柱状分布图。程序会自动选择适合的
+分类数目，但可以通过设定参数
+\code{nclass=} 来改变分类数。还有一种方法是，通过
+参数 \code{breaks=} 精确设置断点（breakpoint）。如果设定参数
+\code{probability=TRUE}，柱高度将表示
+频率而不是频数。\\
+
+\texttt{dotchart(x, \dots{})} &
+\findex{dotchart}
+产生数据 \code{x} 的点图。在一个点图里面，
+\rmath{y}-轴给定 \code{x} 里面数据的标签，
+\rmath{x}-轴给出它们的值。这种图非常容易从视觉上
+看出在某个特定范围内的数据元素。\\
+
+\texttt{image(x, y, z, \dots{})} \\
+\texttt{contour(x, y, z, \dots{})} \\
+\texttt{persp(x, y, z, \dots{})} &
+\findex{image}
+\findex{contour}
+\findex{persp}
+画三变量图。\code{image} 产生一个长方形的网格，用
+不同的颜色表示 \code{z} 的值，\code{contour}
+以等高线（contour line）来表示 \code{z} 的值，
+\code{persp} 产生 3D 表面。\\
+\end{longtable}
+
+\subsection{高级图形命令的参数}
+\hlabel{Arguments to high-level plotting functions}
+
+传递给高级绘图函数的命令有许多，
+如：
+
+\begin{longtable}{lp{0.8\textwidth}}
+\code{add=TRUE} &
+强制函数以低级绘图函数的形式运行，
+在当前的图上加载新的图形元素(仅适合于部分函数)。\\
+
+\code{axes=FALSE} &
+禁止产生坐标轴---当你想用函数 \code{axis()} 
+绘制个性化的坐标轴时非常有用
+。默认值是 \code{axes=TRUE}，表示
+产生坐标轴。\\
+
+\code{log="x"} \\
+\code{log="y"} \\
+\code{log="xy"} &
+让 \rmath{x} 轴，\rmath{y} 轴或者两者都成为对数坐标轴。这对
+很多图都有效，但不是全部。\\
+
+\code{type=} &
+参数 \code{type=} 控制输出图形（特别是线条）的
+类型：
+
+\code{type="p"} \qquad
+只显示点（默认）
+
+\code{type="l"} \qquad
+显示线条 
+
+\code{type="b"} \qquad
+(\emph{同时})显示点和线 
+
+\code{type="o"} \qquad
+将点覆盖在线上
+
+\code{type="h"} \qquad
+绘制从点到零轴（x 轴）的垂直线(\emph{高密度(high-density)})
+
+\code{type="s"} 
+
+\code{type="S"} \qquad
+步阶图。第一种形式，垂直线顶部匹配数据点；
+第二种形式，底部匹配。
+
+\code{type="n"} \qquad
+图形不显示。但是坐标轴仍然显示(默认)，并且
+坐标依然以数据设定。这个非常适合
+随后用低级绘图函数画图。
+
+\\
+
+\code{xlab=\var{string}} \\
+\code{ylab=\var{string}} &
+设定 \rmath{x} 和 \rmath{y} 轴的标签。可以用这些参数修改
+默认标签。默认标签常常是用于高级绘图函数中的
+对象的名字。\\
+
+\code{main=\var{string}} &
+图形标题，以大字体置于图形的顶部。\\
+
+\code{sub=\var{string}} &
+子标题，以小字体放在 \rmath{x}-轴底部。\\
+\end{longtable}
+
+\section{低级图形函数}
+\hlabel{Low-level plotting commands}
+
+有些时候，高级图形函数不能准确产生你想要的图。
+此时，低级图形命令可以在当前图上精确增加一些额外信息
+(如点，线或者文字)。
+
+一些非常有用的低级图形命令是：
+
+\begin{longtable}{lp{0.55\textwidth}}
+\code{points(x, y)} \\
+\code{lines(x, y)} &
+\findex{points}
+\findex{lines}
+在当前图上增加点或者连接线。\code{plot()} 的参数
+\code{type=} 可用于这些函数(
+\code{points()} 的默认值是 \code{"p"}，
+\code{lines()} 的默认值是\code{"l"}。)\\
+
+\code{text(x, y, labels, \dots{})} &
+\findex{text}
+在图上给定的 \code{x, y} 位置添加文字。
+\code{labels} 经常是整数或者字符向量，此时，
+\code{labels[i]} 放在 \code{(x[i], y[i])} 处。默认值是
+\code{1:length(x)}。
+
+\strong{注意}：这个功能常常用于下面的命令
+
+\examp{
+> plot(x, y, type="n"); text(x, y, names)
+}
+
+\noindent
+图形参数 \code{type="n"} 不让点显示，但设置
+坐标轴。函数 \code{text()} 提供了一个特别的字符向量，因为
+相应点的位置上的符标由字符向量 \code{names} 设定。\\
+
+\code{abline(a, b)} \\
+\code{abline(h=\var{y})} \\
+\code{abline(v=\var{x})} \\
+\code{abline(\var{lm.obj})} &
+\findex{abline}
+在当前图上增加一个斜率为 \code{b} 截距为 \code{a} 的直线。
+\code{h=\var{y}} 可用于指定贯穿整个图的
+水平线高度的 \rmath{y}-坐标。
+\code{v=\var{x}} 类似地用于指定垂直线的 \rmath{x}-坐标。
+同样，\var{lm.obj} 可能是一个有长度为2的 \code{coefficients} 分量
+(如模型拟合的结果)的列表。该分量
+中依次含有截距和斜率。\\
+
+\code{polygon(x, y, \dots{})} &
+\findex{polygon}
+绘制由 (\code{x}, \code{y}) 作为顶点定义的多边形。
+并且可以用剖面线(hatch lines)填充（可选），或者
+在图形设备允许的情况下填充其他东西。\\
+
+\code{legend(x, y, legend, \dots{})} &
+\findex{legend}
+在当前图的特定位置增加图例（legend）。标识字符，
+线条格式，颜色等都是被
+字符向量 \code{legend} 中的标签所注释。另外一个
+含有画图单位对应值的参数 \var{v}
+(一个和 \code{legend} 长度一致的向量)是必须给定的：
+
+\code{legend( , fill=\var{v})} 
+
+\qquad 填充盒子的颜色 
+
+\code{legend( , col=\var{v})} 
+
+\qquad 点或者线条的颜色 
+
+\code{legend( , lty=\var{v})} 
+
+\qquad 线条样式
+
+\code{legend( , lwd=\var{v})}
+
+\qquad 线条宽度
+
+\code{legend( , pch=\var{v})} 
+
+\qquad 标识字符 (字符向量)
+\\
+
+\code{title(main, sub)} &
+\findex{title}
+将 \code{main} 定义的标题以大字体的形式放在当前图的顶部，
+同时可以将 \code{sub} 定义的小标题以小字体的形式放在下部（可选）。\\
+
+\code{axis(side, \dots{})} &
+\findex{axis}
+在第一个参数(1 到 4，从底部顺时钟方式数)定义的某一侧增加
+一个坐标轴。另一个参数控制
+坐标轴相对图区的位置，刻度位置
+和标签位置。这对调用参数设置为 \code{axes=FALSE} 的
+\code{plot()} 函数后增加定制的坐标轴非常有用。\\
+\end{longtable}
+
+低级图形函数常常需要一些位置信息
+(如，\rmath{x} 和 \rmath{y} 坐标) 来决定
+新的图形的放置。坐标是由\emph{用户坐标}设置。
+而用户坐标根据先前高级图形命令定义以及由用户提供的数据决定。
+
+其中 \code{x} 和 \code{y} 参数是必须的。如果提供
+一个同时含有参数 \code{x} 和 \code{y} 的列表对象作为
+参数也是允许的充分的。
+类似的是，一个双列的矩阵同样是合法的输入。
+在这种情况下，函数如 \code{locator()}(见后面的内容)
+可以交互式地在一个图上设定位置。
+
+\subsection{数学标注}
+\hlabel{Mathematical annotation}
+
+在某些情况下，在一个图上加上数学符号和公式是非常有用的。
+在 \R{} 里面，这可以通过函数 \emph{expression} 实现，而不是
+直接把数学符号和公式加在 \code{text}，\code{mtext}，\code{axis}，
+或者 \code{title} 的字符串里面。例如，下面的代码
+将写出二项式概率分布的公式：
+
+\begin{example}
+> text(x, y, expression(paste(bgroup("(", atop(n, x), ")"), p^x, q^{n-x})))
+\end{example}
+
+更多的信息，包括 \R{} 这些特性的列表，
+可以利用下面的命令得到：
+
+\begin{example}
+> help(plotmath)
+> example(plotmath)
+> demo(plotmath)
+\end{example}
+
+\subsection{Hershey 矢量字体}
+\hlabel{Hershey vector fonts}
+
+函数 \code{text} 和 \code{contour} 可以使用 Hershey 矢量字体。
+使用 Hershey 矢量字体
+有三个理由：
+\begin{itemize}
+\item
+Hershey 字体会产生更好的输出，
+特别在计算机屏幕上，或者用于旋转以及小字体时。
+\item
+Hershey 字体提供一些标准字体库没有的字体。
+如星座记号，地图符号
+和天文学符号。
+\item
+Hershey 字体提供西里尔字符（cyrillic）和日语字符（假名和日本汉字）。
+\end{itemize}
+
+更多的信息（包括 \R{} 里面的 Hershey 字符列表）
+可以通过如下命令得到：
+
+\begin{example}
+> help(Hershey)
+> demo(Hershey)
+> help(Japanese)
+> demo(Japanese)
+\end{example}
+
+\section{交互使用图形环境}
+\hlabel{Interacting with graphics}
+
+\R{} 同时提供了允许用户直接用鼠标在一个图上提取和提交信息的函数。
+其中最为简单的是函数
+\code{locator()}：
+
+\begin{longtable}{lp{0.7\textwidth}}
+\code{locator(n, type)} &
+\findex{locator}
+等待用户用鼠标左键点击当前图上的特定位置。
+这个过程直到 \code{n} (默认 512)个点
+被选择，或者另外一个鼠标键被点击了。参数
+\code{type} 允许在被选择的点上画图并且有
+高级画图命令一样的效果；默认情况下不能画图。
+\code{locator()} 以双分量 \code{x} 和 \code{y} 的列表
+形式返回所选中点的位置信息。\\
+\end{longtable}
+
+\code{locator()} 常常没有参数。当我们很难设定一些图形元素
+（如图例和标签）在图上的放置位置时，交互式选定
+位置信息可能是一种非常好的办法。
+例如，在特异点（outlying point）的旁边
+标注一些提示信息，我们可以用下面的命令
+
+\begin{example}
+> text(locator(1), "Outlier", adj=0)
+\end{example}
+
+\noindent
+(如果当前设备（如 \code{postscript}）不支持
+交互式使用，则 \code{locator()} 会被自动忽略。)
+
+\begin{longtable}{lp{0.6\textwidth}}
+\code{identify(x, y, labels)} &
+\findex{identify}
+允许用户将 \code{labels} 定义的标签
+（在\code{labels}为空时，默认为点的索引值）放置在由 \code{x} 和
+\code{y} (利用鼠标左键)决定的点旁边。
+当鼠标右键被点击时，返回被选择点的索引。\\
+\end{longtable}
+
+有时候我们想标定一个图上的一些\emph{特定点}，而不是
+它们的位置。例如，我们可能期望用户能在图形显示上选择一些
+有意思的点，然后以某种方式处理。
+假定有两个数值向量 \code{x} 和 \code{y} 构成的一系列
+坐标 \rmath{(x, y)}，
+我们可以如下使用
+函数 \code{identify()}：
+
+\begin{example}
+> plot(x, y)
+> identify(x, y)
+\end{example}
+
+函数 \code{identify()} 自己不会标识，但允许用户
+简单的移动鼠标指针和在一个点附近点击鼠标左键。
+如果有一个点在鼠标指针附近，那么它将会把自己的索引值
+(也就是在\code{x}/\code{y} 向量中的位置)标记在点的旁边。 
+还有一种方案是，你可以通过 \code{identify()} 的参数 \code{labels} 设置
+其他的文字信息(如样本名字等)，并且可以通过参数 \code{plot = FALSE} 禁止 
+标记重叠在一起。在这个过程结束时（见上面），
+\code{identify()} 返回所选点的索引值；
+你可以利用这些索引值提取
+原始向量 \code{x} 和 \code{y} 中的点信息。
+
+\section{使用图形参数}
+\hlabel{Using graphics parameters}
+
+当创建图形时，特别是用于陈述或者出版，
+\R{} 的默认设置往往不能符合要求。
+但是你可以利用\emph{图形参数}几乎可以定制任何你
+想显示的方式。\R{} 拥有一个数目很大的图形参数列表。
+该列表包括控制线条样式，
+颜色，图形排列和文字对齐等方面的参数。
+每一个图形参数都有名字(如`\code{col}'，设置
+颜色)和值 (如颜色值)。
+
+每一个活动的设备都有一套独立的图形参数列表，
+和启动时各参数的默认值。
+图形参数可以用两种方式设定：
+要么是永久性的，影响所有访问当前设备的图形函数；
+要么是临时性的，仅仅影响特定的图形函数。
+
+\subsection{永久性地改变: \code{par()} 函数}
+\hlabel{The par() function}
+\findex{par}
+\cindex{图形参数}
+
+函数 \code{par()} 用于访问和修改当前图形设备的
+参数列表。
+
+\begin{longtable}{lp{0.68\textwidth}}
+\code{par()} &
+没有参数，将返回所有图形参数的列表和当前
+设备的设定值。\\
+\code{par(c("col", "lty"))} &
+设定一个字符串向量的参数，仅仅返回指定的
+参数(同样是一个列表)。\\
+\code{par(col=4, lty=2)} &
+给定参数(或者是一个列表参数)，设置指定图形参数的值，
+以列表的形式返回
+参数的初始值。\\
+\end{longtable}
+
+通过函数 \code{par()} 设定图形参数会\emph{永久地}改变
+参数值，因为以后所有在当前设备中
+调用的图形函数都会受这些设置值影响。
+你可以用这种办法设定图形参数的
+``默认''值。这些默认值将会被
+所有图形函数调用，除非你设定了其他值。
+
+注意，调用 \code{par()} \emph{常常}会影响图形参数的全局值，
+这种情况甚至出现在函数内部调用 \code{par()}。
+这种行为不是我们想要的－我们通常只是想
+设定一些图形参数，绘制一些图片，然后恢复原始值以免影响到
+其他用户的 \R{} 会话。你可以
+通过保存 \code{par()} 的值来恢复初始值。
+当图形绘制结束后，你可以重新
+载入这些保存的初始值\footnote{译者注：有些版本会自动在绘图结束后恢复的原始设定。}。
+
+\begin{example}
+> oldpar <- par(col=4, lty=2)
+  ... 图形命令 ...
+> par(oldpar)
+\end{example}
+
+\noindent
+为保存和恢复\emph{所有}设定的\footnote{一些图形参数，
+如当前设备的大小，仅仅
+是信息提示作用。}图形参数，可以使用
+
+\begin{example}
+> oldpar <- par(no.readonly=TRUE)
+  ... 图形命令 ...
+> par(oldpar)
+\end{example}
+
+
+\subsection{临时性地改变：图形函数的参数}
+\hlabel{Arguments to graphics functions}
+
+图形参数可以用命名参数的形式传递到(几乎)所有图形函数。
+这和函数 \code{par()} 设定的参数有同样的影响，
+除非参数的改变仅仅影响
+当前函数调用这个过程而不影响其他函数调用。例如：
+
+\begin{example}
+> plot(x, y, pch="+")
+\end{example}
+
+\noindent
+这将产生一个以加号为标符的散点图。这个命令不会影响
+后面的图形命令的默认图标。
+
+不过，这不是总有效的，有些时候还是
+需要通过 \code{par()} 设定和
+重新设定图形参数。
+
+
+\section{图形参数列表}
+\hlabel{Graphics parameters}
+
+下面的内容将会具体描述一些常用的图形参数。
+\R{} 帮助文档中关于 \code{par()} 函数的内容
+会给出相当简练的概述；这里会给出一个有点
+具体的描述。
+
+图形参数将会以下面的形式给出：
+
+\begin{longtable}{lp{0.75\textwidth}}
+\code{\var{name}=\var{value}} &
+对参数影响的描述。\var{name} 是参数名，
+它可以用于 \code{par()} 或一个图形函数中。
+\var{value} 是你想给这个参数
+设定的值。\\
+\end{longtable}
+
+注意 \code{axes} \strong{不是}图形参数而是
+一些 \code{plot} 方法的参数：参见 \code{xaxt} 和 \code{yaxt}。
+
+\subsection{图形元素}
+\hlabel{Graphical elements}
+
+\R{} 图形由点，线，文本和多边形（闭合区域）构成。
+图形参数就是用来控制这些
+\emph{图形元素}（graphical element）如何绘制：
+
+\begin{longtable}{lp{0.75\textwidth}}
+\code{pch="+"} &
+用于显示点的符标。默认值会随图形驱动不同而有些差异，
+不过常常是
+`$\circ$'。
+被显示的点稍稍高于或者低于适当的位置，除非
+你用位于中心的
+ \code{"."} 作为显示符标。 \\
+
+\code{pch=4} &
+当 \code{pch} 设定一个0到25之间的整数，
+一个特定的符标将会产生。为了查看各个符标的样子，
+可以采用下面的命令
+
+\examp{
+> legend(locator(1), as.character(0:25), pch = 0:25)
+}
+
+\noindent
+这些位于21到25间的符标看上去是前面符标的重复，不过它们可以用
+不同的颜色显示：查看 \code{points} 的帮助文档
+和例子。
+
+此外，\code{pch} 可以是
+\code{32:255} 范围内的字符和数字。它们会以字符的当前字体形式显示。\\
+
+\code{lty=2} &
+线条类型。尽管不是所有的图形设备都支持图形类型
+(就是在支持的设备中，也有点差异)，但是类型1常常是实线，
+类型0是不可见的，类型2和其他常常是点线和虚线，
+或者是点划线。 \\
+
+\code{lwd=2} &
+线条宽度。以``标准''线条宽度的倍数设定线条宽度。
+坐标轴线条和利用函数 \code{lines()} 等产生的线条都会
+受影响。不是所有的设备支持这种特性，而且一些设备
+会对线条宽度有所限制的。\\
+
+\code{col=2} &
+点，线，文本，填充区域和图像的颜色设置。
+值可以是来自当前调色板的数字(见 \code{?palette})或者一个命名的颜色。\\
+
+\code{col.axis} \\
+\code{col.lab} \\
+\code{col.main} \\
+\code{col.sub} &
+分别用于轴标注，\rmath{x} 和 \rmath{y} 轴的标签，
+主标题和次标题等的颜色设置。\\
+
+\code{font=2} &
+整数是用来指定用于文中的字体类型。一般情况下，
+设备驱动设定的 \code{1} 对应于纯文本，
+\code{2} 对应粗体，\code{3} 对应斜体，\code{4} 对应粗斜体，
+\code{5} 对应符号体(包括希腊字母)。\\
+
+\code{font.axis} \\
+\code{font.lab} \\
+\code{font.main} \\
+\code{font.sub} &
+分别用于轴标注，\rmath{x} 和 \rmath{y} 轴标签，
+主标题和次标题的字体设置。\\
+
+\code{adj=-0.1} &
+调整文本对于图形的相对位置。\code{0} 表示
+左对齐，\code{1} 表示右对齐，\code{0.5} 表示
+图形位置的水平居中。实际值表示出现在
+图形位置左侧的文本宽度的比率，
+因此 \code{-0.1} 表示将会在文本和图形位置间
+留下文本宽度的 10\%。 \\
+
+\code{cex=1.5} &
+字符扩张率。这个值表示期望字符(包括绘图字符)大小
+相对默认大小的比率。\\
+\end{longtable}
+
+\subsection{轴和刻度}
+\hlabel{Axes and tick marks}
+
+许多 \R{} 的高级图形自身就含有坐标轴，此外你可以用
+低级图形函数 \code{axis()} 设置你自己的坐标轴。坐标轴主要包括三个部分：
+\emph{轴线}（axis line）(线条格式由图形参数
+\code{lty}控制)，\emph{刻度}（tick mark）(划分轴线上的
+刻度) 和 \emph{刻度标记}（tick label）(标记刻度上的
+单位)。这些部分可以通过下面的图形参数
+设置。
+
+\begin{longtable}{lp{0.75\textwidth}}
+\code{lab=c(5, 7, 12)} &
+前两个参数分别是
+\rmath{x} 和 \rmath{y} 轴期望的刻度间隔数目。第三个参数
+刻度标记的字符长度（包括小数
+点）。这个参数设的太小会导致
+所有的标记变成一样的数字。\\
+
+\code{las=1} &
+刻度标记的方向。\code{0} 表示总是平行于坐标轴，
+\code{1} 表示总是水平，以及 \code{2} 表示
+总是垂直于坐标轴。 \\
+
+\code{mgp=c(3, 1, 0)} &
+三个坐标成分的位置。第一个参数是
+轴标签相对轴位置的距离，以文本行作为参照单位的。第二个参数
+表示刻度标记的距离，最后一个参数是
+轴位置到轴线的距离(常常是0)。
+正值表示在图形外，负值表示在
+图形内。\\
+
+\code{tck=0.01} &
+刻度的长度，以画图区域大小的比率作为度量。
+当 \code{tck} 比较小(小于 0.5)，\rmath{x}
+和 \rmath{y} 轴上的刻度强制大小一致。值为1时，给出网格线。
+负值时刻度在图形外。
+\code{tck=0.01} 和 \code{mgp=c(1,-1.5,0)} 表示内部
+刻度。 \\
+
+\code{xaxs="r"} \\
+\code{yaxs="i"} &
+分别设定 \rmath{x} 和 \rmath{y} 轴的形式。
+\code{"i"} (内在的) 和 \code{"r"} (默认) 形式的刻度
+都适合数据的范围，但是 \code{"r"} 形式的刻度
+会在刻度范围两边留一些空隙(\sm{S} 还有一些
+在 \R{} 里面没有实现的刻度形式)。\\
+\end{longtable}
+
+\subsection{图片边缘}
+\hlabel{Figure margins}
+
+\R{} 里面一个单独的图被称为 \code{figure}。它还包括一个
+被边缘（可能包括轴标签，标题等）和坐标轴
+包围的\emph{绘图区域}（plot region）。
+
+一个典型的图为
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=7cm]{images/fig11.eps}
+\end{figure}
+
+控制图版面的图形参数有：
+
+\begin{longtable}{lp{0.68\textwidth}}
+\code{mai=c(1, 0.5, 0.5, 0)} &
+分别表示底部，左边，上部和右边的空间，单位
+是英寸。\\
+
+\code{mar=c(4, 2, 2, 1)} &
+和 \code{mai} 相似，只是度量单位采用文本行。\\
+\end{longtable}
+
+\code{mar} 和 \code{mai} 是等价的因为二者可以相互转换。
+这些参数的默认值常常有点大；
+右侧边缘常常是不需要的，
+没有标题时，顶部边缘也不是需要的。底部和左侧
+足以用来绘制坐标轴和刻度标记。
+需要说明的时，默认值没有考虑到设备层面；
+例如，用设定参数\code{height=4} 的 \code{postscript()} 驱动
+会导致一个图有
+50\% 的边缘。这时可以显式地设置 \code{mar} 或者 \code{mai}。当使用多重图形是（下面会讨论），
+边缘会减少，不过在很多图共享一页时这还是不够的。
+
+\subsection{多重图形环境}
+\hlabel{Multiple figure environment}
+
+\R{} 允许你在一个单页上创建一个 \rmath{n} × \rmath{m} 图形阵列。
+每一个图有它自己的边缘，图形阵列是被可选的
+\emph{外边缘}（outer margin）包围着。具体
+可见下面的图。
+\newpage
+\begin{figure}[h]
+\centering
+\includegraphics[width=6cm]{images/fig12.eps}
+\end{figure}
+
+和多重图形相关的图形参数如下：
+
+\begin{longtable}{lp{0.68\textwidth}}
+\code{mfcol=c(3, 2)} \\
+\code{mfrow=c(2, 4)} &
+设置多重图形阵列的大小。第一个值是行数；
+第二个值是列数。这两种形式的差异在于
+\code{mfcol} 使得图片以列的方式放置；
+\code{mfrow} 则以行的方式放置。 
+
+例图中版面设计可以通过设置
+\code{mfrow=c(3,2)} 实现；图中显示了画了四个图后该页的
+情况。
+
+设置任一可以减小符号或者文本基本大小参数
+(\code{par("cex")}和设备的点大小)的递减因子。在一个
+双行列的版面中，基本大小是通过因子
+0.83 递减的；如果有三个或者三个以上的行列时，
+递减因子是 0.66。\\
+
+\code{mfg=c(2, 2, 3, 2)} &
+当前图片在一个多重图形环境中的位置。前两个数字
+是当前图的行列编号；后面两个数字
+是多重图形阵列的行列编号。设置这个参数
+将会调整图形的位置。你甚至可以
+用和本页上不均等大小图（unequally-sized figures）
+的\emph{实际}值不等的值设定后面两个参数。\\
+
+\code{fig=c(4, 9, 1, 4)/10} &
+当前图片在页上的位置。值分别表示
+左侧，右侧，下侧和上侧的边缘宽度，并且以左侧底部
+作为参照点得到的页面百分比。演示值表示
+一个在页面右下侧的图形。可以通过设定这些参数而将
+图片放置在一个页面的任何地方。如果你想在当前页上
+增加一个图，可以使用参数 \code{new=TRUE} (和 \sm{S} 不同)。\\
+
+\code{oma=c(2, 0, 3, 0)} \\
+\code{omi=c(0, 0, 0.8, 0)} &
+外边缘的大小。同 \code{mar} 和 \code{mai} 相似，第一个以
+文本行度量，第二个以英寸度量。从底部边缘算起，
+以顺时钟方向设置值。\\
+\end{longtable}
+
+外边缘对页面形式的标题特别有用。文本可以
+通过函数 \code{mtext()} 和参数\code{outer=TRUE} 加在外边缘。
+默认没有外边缘，但是
+你可以用 \code{oma} 或
+\code{omi} 显式地定义它们。
+
+更为复杂的多重图形排列可以采用函数
+\code{split.screen()} 和 \code{layout()}\footnote{译者注：画多个图时，我非常喜欢这个函数。}，以及包
+\pkg{grid} 和 \pkg{lattice}。
+
+\section{设备驱动}
+\hlabel{Device drivers}
+\cindex{图形设备驱动}
+
+\R{} 几乎可以在任何形式的显示和打印设备上产生图片(包括各种显示质量的)。
+但是在显示图片前，
+\R{} 必须指明采用什么设备处理图片。这可以通过
+启动\emph{设备驱动}（device driver）来实现。设备驱动的目的
+在于将 \R{} 的画图指令(如``draw a line,'')
+转化成特定设备可以识别的指令。
+
+我们可以调用设备驱动函数来启动设备驱动。
+每一种设备驱动都有对应的函数：输入 \code{help(Devices)}
+可以得到它们的列表。例如，发出命令
+
+\begin{example}
+> postscript()
+\end{example}
+
+\noindent
+会使得所有图形以 PostScript 的形式输出。
+ 一些常用的设备驱动是：
+
+\begin{longtable}{lp{0.75\textwidth}}
+\code{X11()} &
+\findex{X11}
+用 UNIX 类型的系统的 X11 桌面系统 \\
+\code{windows()} &
+\findex{windows}
+用于 Windows 系统 \\
+\code{quartz()} &
+\findex{quartz}
+用于 MacOS X 系统 \\
+\code{postscript()} &
+\findex{postscript} 
+用于 PostScript 打印机，或者创建 PostScript 
+文件。 \\
+\code{pdf()} &
+\findex{pdf}
+创建可以插入 PDF 文件中 PDF 文件 \\
+\code{png()} &
+\findex{png}
+创建 PNG 位图文件。(不总是有效的：参考它的帮助文件) \\
+\code{jpeg()}
+\findex{jpeg} &
+创建 JPEG 位图文件，非常适用于\code{影像}（image）输出。
+(不总是有效的：参考它的帮助文件) \\
+\end{longtable}
+
+当你结束使用一个设备时，用下面的命令
+终止设备驱动
+
+\begin{example}
+> dev.off()
+\end{example}
+
+这将确信设备完全结束了；例如在硬拷贝设备中，这
+将保证每一页都已完成并且已经发送给打印机。
+(在常规会话的结束，
+这些过程会自动完成。)
+
+\subsection{排版文档用的 PostScript 图表}
+\hlabel{PostScript diagrams for typeset documents}
+
+通过将参数 \code{file} 传递给 \code{postscript()} 设备驱动函数，
+你可以在你选择的文件中以 PostScript 形式保存图片。
+图片会被横行放置，但你可以设定参数
+\code{horizontal=FALSE} 使得图片纵向放置。图形大小将
+通过参数 \code{width} 和 \code{height} 设置
+(图形会被适当调整以适合参数要求)。
+例如，命令
+
+\begin{example}
+> postscript("file.ps", horizontal=FALSE, height=5, pointsize=10)
+\end{example}
+
+\noindent
+将产生一个高为5英寸以 PostScript 格式编码的图片文件。
+特别要提醒的是，如果命令中的文件名已经存在，原来的文件将会被覆盖。
+在同一目录下的 \R{} 会话中，一定要小心先前创建的文件名字。
+
+PostScript 输出的图片常常用于插入其他文档中。
+此时最好采用\emph{封装的}（encapsulated）PostScript 图片：
+\R{} 常常产生构造性的输出（conformant output），但是只在
+\code{onefile=FALSE} 参数提供时才以标记输出。这种
+奇怪的用法和 \sm{S} 不兼容：它实际上表示
+输出将会是单页的 (这是 EPSF 规范的一部分)。
+因此对于内插图片的生成可以采用下面的命令\footnote{译者注：我是用 GSview 查看 PostScript 文件的，
+所以对以 PostScript 格式的图片我都用这个软件直接转换了。效果还是不错的。}：
+
+\begin{example}
+> postscript("plot1.eps", horizontal=FALSE, onefile=FALSE,
+             height=8, width=6, pointsize=10)
+\end{example}
+
+\subsection{多重图形设备}
+\hlabel{Multiple graphics devices}
+
+在 \R{} 的高级使用里面，几个图形设备的同时工作是非常有用的。
+不过，在一个时间点，只有一个图形设备可以接受图形命令，
+这个设备就是所谓的\emph{当前设备}。当多个设备同时启动时，它们
+将形成一个以名字作为标识符的有限任务序列。
+
+操作多重图形设备的主要命令和意义
+列举如下：
+
+\begin{longtable}{lp{0.55\textwidth}}
+\code{X11()} &
+[UNIX] \\
+\code{windows()} \\
+\code{win.printer()} \\
+\code{win.metafile()} &
+[Windows] \\
+\code{quartz()} &
+[MacOS X] \\
+\code{postscript()} \\
+\code{pdf()} \\
+\code{\dots{}} &
+任何一次调用设备驱动函数都会打开一个图形设备，
+该设备自动加到一个设备列表的后面。这个设备现在就是当前设备，
+所有的图形都会输出到这个设备上。(一些平台可能有
+更多的设备可用。) \\
+\code{dev.list()}
+\findex{dev.list} &
+返回所有处于活动状态的设备的编号和名字。位于列表位置
+1 的设备常常是\emph{零设备}（null device），它不接受
+任何图形命令。 \\
+
+\code{dev.next()} \\
+\code{dev.prev()} &
+\findex{dev.next}
+\findex{dev.prev}
+分别返回当前设备的后一个或者前一个设备的名字
+和编号。\\
+
+\code{dev.set(which=\var{k})} &
+\findex{dev.set}
+将设备列表中位置
+\var{k} 的设备作为当前设备。返回该设备的标签和编号。 \\
+
+\code{dev.off(\var{k})} &
+\findex{dev.off}
+终止设备列表中位置 \var{k} 的设备。对于一些设备，如
+\code{postscript} 设备，该命令要么立即打印
+该文件，要么正确地结束文件。
+这依赖于设备时如何初始设置。 \\
+
+\code{dev.copy(device, \dots{}, which=\var{k})} \\
+\code{dev.print(device, \dots{}, which=\var{k})} &
+为设备 \var{k} 创建一份拷贝。这里，\code{device} 是一个设备函数，
+如 \code{postscript}，必要时可以加入由 \samp{\dots{}} 指定的额外参数。
+\code{dev.print} 类似，但是被拷贝的设备会迅速关闭，因此收尾活动，如打印硬拷贝等，
+会立刻执行。\\
+
+\code{graphics.off()} &
+关闭设备列表中除零设备外的所有设备。\\
+\end{longtable}
+
+\section{动态图形}
+\cindex{动态图形}
+\hlabel{Dynamic graphics}
+
+\R{} 目前还没有提供内置的函数处理动态图形，
+如旋转散点云，``刷亮''（brush）(交互式强调)图形\footnote{译者注：
+SAS等统计软件也有类似概念，指在散点图中，用拖动鼠标光标的方法拖出一个小长方形来
+选中数据点，同时会在另外一个散点图中高亮显示选中的点。}等。 
+但是，强大的动态图形函数可以从
+Swayne, Cook 和 Buja 设计的 XGobi 系统中得到，相关的网址是
+
+\begin{quotation}
+\url{http://www.research.att.com/areas/stat/xgobi/}
+\end{quotation}
+
+\noindent
+并且可以通过 \R{} 的包 \pkg{xgobi} 直接访问。
+XGobi 可以在 UNIX 或者 Windows 的 X 桌面系统中运行， 
+\R{} 都有相关的接口。
+
+XGobi 的一个衍生版本 GGobi 现在正在开发\footnote{
+ 译者注：ggobi通过捐献包Rggobi 提供R的接口。
+ 在我翻译本文档时，R和BioConductor的官方网站没有发布该包，
+ 但可以去Ggobi的官方网站下载Ggobi和Rggobi，链接地址为\url{http://www.ggobi.org/downloads/}。
+ 下载后，本地安装Ggobi和在R控制台安装Rggobi包。把Ggobi安装根目录下面的动态链接库文件拷贝
+ 到\file{\$R\_HOME/library/Rggobi/libs}下面，详细动态库访问路径设置见Ggobi的官方文档。}，可以参见：
+\url{http://www.ggobi.org}。

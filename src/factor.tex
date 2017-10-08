@@ -1,0 +1,168 @@
+\chapter{有序因子和无序因子}
+\hlabel{Factors}
+\cindex{因子}
+\cindex{有序因子}
+
+\emph{因子}（factor）是一个对等长的其他向量元素
+进行分类（分组）的向量对象。
+~\R{} 同时提供\emph{有序}（ordered）和\emph{无序}（unordered）因子。
+而``真正''使用因子是在模型设计公式的时候
+(见\hlink{Contrasts}{对照设计})，这里我们先看一些简单的例子。
+
+\section{一个特别的例子}
+
+假定我们有一份来自澳大利亚所有州和行政区的30个税务会计师的信息
+样本\footnote{
+澳大利亚的8个州和行政区分别是
+Australian Capital Territory, New South Wales, the Northern Territory,
+Queensland, South Australia, Tasmania, Victoria 和 Western Australia。}
+以及他们各自所在地的州名。州名以字符串向量的形式
+保存在 state 中
+
+\begin{example}
+> state <- c("tas", "sa",  "qld", "nsw", "nsw", "nt",  "wa",  "wa",
+             "qld", "vic", "nsw", "vic", "qld", "qld", "sa",  "tas",
+             "sa",  "nt",  "wa",  "vic", "qld", "nsw", "nsw", "wa",
+             "sa",  "act", "nsw", "vic", "vic", "act")
+\end{example}
+
+注意在字符向量中，``有序''意味着以字母排序的\footnote{译者注: 如果是汉字, 可能情况就复杂了\^{}\_\^{}.}。
+
+\emph{因子}可以简单地用函数 \code{factor()} 创建：
+\findex{factor}
+
+\begin{example}
+> statef <- factor(state)
+\end{example}
+
+函数 \code{print()} 处理因子和其他对象
+有点不同：
+
+\begin{example}
+> statef
+ [1] tas sa  qld nsw nsw nt  wa  wa  qld vic nsw vic qld qld sa
+[16] tas sa  nt  wa  vic qld nsw nsw wa  sa  act nsw vic vic act
+Levels:  act nsw nt qld sa tas vic wa
+\end{example}
+
+函数 \code{levels()} 可以用来得到因子
+的水平（levels）。
+\findex{levels}
+
+\begin{example}
+> levels(statef)
+[1] "act" "nsw" "nt"  "qld" "sa"  "tas" "vic" "wa"
+\end{example}
+
+\section{函数 \code{tapply()} 和不规则数组}
+\hlabel{The function tapply() and ragged arrays}
+\findex{tapply}
+
+沿用前面的例子，假定我们有这些税务会计师的
+收入信息并且保存在另外一个向量中(适当的货币
+单位)
+
+\begin{example}
+> incomes <- c(60, 49, 40, 61, 64, 60, 59, 54, 62, 69, 70, 42, 56,
+               61, 61, 61, 58, 51, 48, 65, 49, 49, 41, 48, 52, 46,
+               59, 46, 58, 43)
+\end{example}
+
+为计算样本中每个州的平均收入，我们可以
+用函数 \code{tapply()}：
+
+\begin{example}
+> incmeans <- tapply(incomes, statef, mean)
+\end{example}
+
+\noindent
+这将给出一个均值向量。各个元素都用对应的水平名字标记。
+
+\begin{example}
+   act    nsw     nt    qld     sa    tas    vic     wa
+44.500 57.333 55.500 53.600 55.000 60.500 56.000 52.250
+\end{example}
+
+函数 \code{tapply()} 将一个功能函数（这里是
+\code{mean()}）用于第二个参数
+\footnote{注意，当第二个参数不是因子时，
+函数 \code{tapply()} 同样有效，
+如 \samp{\code{tapply(incomes, state)}}。这对一些其他
+函数也是有效，因为必要时\R{} 会用 \code{as.factor()} 把参数\emph{强制转换}成因子。
+}（这里是\code{statef}）
+定义于第一个参数（这里是\code{incomes}）
+上得到的所有组。此时，各个组的数据
+好像是独立的
+向量。得到的结果向量长度
+和因子的水平数一致。读者
+可以通过帮助文档获得更多的信息。
+
+假定我们进一步想计算各个州的标准误（standard error）\footnote{译者注：注意和``标准差''的不同}。
+我们可以写了一个 ~\R{} 函数来计算
+任一给定向量的标准误。既然已经有内置函数
+\code{var()} 计算样本方差，则这个函数
+可以在一行写完，并且有一个参数等待赋值：
+
+\begin{example}
+> stderr <- function(x) sqrt(var(x)/length(x))
+\end{example}
+
+\noindent
+(编写函数可以参考后面的内容 \hlink{Writing your own
+functions}{编写你自己的函数}部分。这里的写的标准误演示函数其实是没有必要的，因为 ~\R{}
+有一个内置计算标准误的函数 \code{sd()}\footnote{译者注: 我觉得这里英文原文弄错了. \R{} 里面的
+内置函数\code{sd()}是用来计算'标准差的`不是标准误, 
+大家可以看看本手册定义的\code{stderr(1:4)}和内置的\code{sd(1:4)}结果是不是一样. 它们的关系应该是
+\code{stderr $<$- function(x)\{sd(x)/sqrt(length(x))\}}})
+\findex{sd}
+\findex{var}
+赋值后，标准误被计算出来
+
+\begin{example}
+> incster <- tapply(incomes, statef, stderr)
+\end{example}
+
+\noindent
+值分别为
+
+\begin{example}
+> incster
+act    nsw  nt    qld     sa tas   vic     wa
+1.5 4.3102 4.5 4.1061 2.7386 0.5 5.244 2.6575
+\end{example}
+
+作为一个练习，你可以计算一下州平均收入的95\%信度区间。
+提示一下，你可能要再次使用 \code{tapply()}
+和能得到样本量的函数 \code{length()}，以及能得到\rmath{t}-分布分位数的函数
+\code{qt()}(你需要参考一下 ~\R{} 为\rmath{t}-检验设计的函数。)。
+
+函数 \code{tapply()} 还可以用来处理一个由多个分类因子决定的向量
+下标组合。例如，我们可能期望通过州名和性别把这税务会计师分类。不过，就在上面最
+简单的情况中(仅仅一个变量)，我们也可以这样考虑这个问题（复杂因子组合时一样处理）。
+向量中的值可以根据因子中不同的水平分成
+许多组。函数就是独立的用于这些组。得到的值
+是这些函数结果的向量，并且以
+因子的水平属性标记。
+
+因为子类的大小是不规则的，所以向量和作为标签的因子的组合对象只是我们偶尔会提及的
+\emph{不规则数组}（ragged array）一个特例罢了。
+当子类大小一致的时候，
+索引最有效，正如我们
+在下一章中所看到的一样。
+
+
+\section{有序因子}
+\hlabel{Ordered factors}
+\findex{ordered}
+
+因子的水平是以字母顺序排列的，或者
+显式地在 \code{factor} 中指定。
+
+有时候因子的水平有自己的自然顺序并且这种顺序是有意义的。
+我们需要记录下来可能在进一步的统计分析中用到。函数 \code{ordered()}
+\findex{ordered}
+就是用来创建这种有序因子。在其他方面，函数 \code{ordered()}
+和\code{factor} 基本完全一样。大多数情况下，
+有序和无序因子的唯一差别在于前者显示的时候
+反应了各水平的顺序。另外, 在线性模型拟合的时候，
+两种因子对应的对照矩阵的意义是完全不同的。

@@ -1,0 +1,215 @@
+\chapter{从文件中读取数据}
+\hlabel{Reading data from files}
+\cindex{从文件中读取数据}
+
+大的数据对象常常是从外部文件中读入，而不是
+在 \R{} 对话时用键盘输入的。\R{} 的导入工具
+非常简单但是对导入文件的格式有一些比较严格甚至顽固的限制。
+\R{}的设计者假定
+你可以用其他工具（如文件编辑器或者
+Perl\footnote{在 UNIX环境下，工具 Sed 或
+Awk 也可以考虑。}）修改你的输入文件格式以使它们符合 \R{}的要求。一般来说，
+这还是比较简单的。
+
+如果变量主要在数据框中操作，我们强烈建议
+整个数据框用函数\code{read.table()} 读入。还有其他更为古老的输入函数，如
+\code{scan()}\footnote{译者注：虽然有点原始，但可能比read.table()用的还多。键入scan()后，可以直接把Excel或其他格式的数据，直接拷到控制台的},
+它可以直接接受键盘输入的。
+
+关于 \R{} 导入导出数据，可以参考另外一本
+手册\emph{《R 数据的导入/导出》}\footnote{译者注：我正在翻译，现在可以看英文原版的，在 R 的官方网站上。}。
+
+\section{\code{read.table()}函数}
+\hlabel{The read.table() function}
+\findex{read.table}
+
+为了可以直接读取整个数据框，外部文件常常要求有特定的格式。
+
+\begin{itemize}
+\item
+第一行可以有该数据框各个变量的
+\emph{名字}。
+
+\item
+随后的行中第一个条目是\emph{行标签}，
+其他条目是各个变量的值。
+\end{itemize}
+
+在文件中，第一行比第二行少一个条目，这样做是
+被强制要求的\footnote{译者注：你可以让第一行和第二行条目数一致。但是 R 会把第一行当作数据数据处理而不是你所期望的变量名。
+可以通过设定 \code{read.table()} 的参数 \code{header=TRUE} 来解决这个问题。}。
+因此一个被看作数据框读入文件的开头几行应该是下面的形式。
+
+\begin{example}
+有列名字和行标签的输入文件格式：
+
+     Price    Floor     Area   Rooms     Age  Cent.heat
+01   52.00    111.0      830     5       6.2      no
+02   54.75    128.0      710     5       7.5      no
+03   57.50    101.0     1000     5       4.2      no
+04   57.50    131.0      690     6       8.8      no
+05   59.75     93.0      900     5       1.9     yes
+...
+\end{example}
+
+默认情况下，数值项(除了行标签)以数值变量的形式读入, 
+而非数值变量则以因子的形式读入，如例子中的
+\code{Cent.heat} 项。在必要时可以改变变量类型。
+
+函数 \code{read.table()} 可以用来直接读入
+数据框
+
+\begin{example}
+> HousePrice <- read.table("houses.data")
+\end{example}
+
+你常常需要忽略掉行标签而直接使用默认的行标签。
+这种情况下，输入文件就如下面所示的一样
+省略行标签。
+
+\begin{example}
+没有行标签的输入文件格式：
+
+Price    Floor     Area   Rooms     Age  Cent.heat
+52.00    111.0      830     5       6.2      no
+54.75    128.0      710     5       7.5      no
+57.50    101.0     1000     5       4.2      no
+57.50    131.0      690     6       8.8      no
+59.75     93.0      900     5       1.9     yes
+...
+\end{example}
+
+这时，数据框可用如下命令读入
+
+\begin{example}
+> HousePrice <- read.table("houses.data", header=TRUE)
+\end{example}
+
+\noindent
+其中 \code{header=TRUE} 选项指定第一行是标题行，
+并且因此
+省略文件中给定的行标签。
+
+\section{\code{scan()} 函数}
+\hlabel{The scan() function}
+\findex{scan}
+
+假定有三个数据向量，长度一致并且要求并行读入。
+其中，第一个向量是
+字符模式，另外两个是数值模式，文件是
+\file{input.dat}。第一步是用 \code{scan()} 以列表的形式
+读入这三个向量，如下所示
+
+\begin{example}
+> inp <- scan("input.dat", list("",0,0))
+\end{example}
+
+第二个参数是一个设定读入向量模式的虚拟列表结构（dummy list structure）。
+返回的结果 \code{inp} 是以三个读入向量作为分量的列表。
+为了把数据条目分成三个独立的向量，可以
+使用下面的赋值方式
+
+\begin{example}
+> label <- inp[[1]]; x <- inp[[2]]; y <- inp[[3]]
+\end{example}
+
+更为便利的是，虚拟列表可以设定命名的分量。这种情况下，
+可以用名字直接访问向量。例如
+
+\begin{example}
+> inp <- scan("input.dat", list(id="", x=0, y=0))
+\end{example}
+
+如果你想分别访问这些变量，你要么可以
+提取这些数据框中的分量赋给新的变量：
+
+\begin{example}
+> label <- inp$id; x <- inp$x; y <- inp$y
+\end{example}
+
+\noindent
+要么把这个列表绑定在搜索路径的\w{位置 2}中
+(见\hlink{Attaching arbitrary lists}{绑定任意列表})。
+
+如果第二个参数是一个单一值（虚拟值）而不是列表，那么一个单一
+向量将会被读入。它的所有元素将会和这个虚拟值的
+模式一致。
+
+\begin{example}
+> X <- matrix(scan("light.dat", 0), ncol=5, byrow=TRUE)
+\end{example}
+
+\R{} 里面有许多更为精细的输入工具，
+在其他一些手册中会有具体介绍。
+
+\section{访问内置数据}
+\hlabel{Accessing builtin datasets}
+\cindex{访问内置数据}
+\findex{data}
+
+\R{} 提供了大约100个内置的数据集(在包 \pkg{datasets} 中)，
+其他的包(包括和\R{}捆绑发布的推荐包)
+也提供了一些作为例子的数据集。可以用下面的命令
+查看当前能访问的数据集列表
+
+\begin{example}
+data()
+\end{example}
+
+\noindent
+自 \R{} 2.0.0版本开始，所有 \R{} 提供的数据集可以通过名字
+直接访问。但是，许多包
+仍然沿用早期用\code{data} 在 \R{} 中导入数据的方式，
+例如
+
+\begin{example}
+data(infert)
+\end{example}
+
+\noindent
+在标准包中，仍然可以这样使用(就像这个
+例子一样)。许多情况下，这样会加载一个同名的 \R{} 对象。
+不过，在某些情况下它会加载好几个包，
+你可以查看在线帮助文档弄清楚可能发生的事情。
+
+\subsection{从其他 R 包里面导入数据}
+
+为了访问某个特定包的数据，可以使用参数 \code{package}，
+例如
+
+\begin{example}
+data(package="rpart")
+data(Puromycin, package="datasets")
+\end{example}
+
+如果一个包已经被 \code{library} 绑定，那么它的数据集会被
+自动地加入到~\R{} 的搜索路径中去。
+
+用户捐献的包含有非常丰富的数据集。
+
+\section{编辑数据}
+\hlabel{Editing data}
+
+\findex{edit}
+用 \code{edit} 调用数据框和矩阵时，
+\R{} 会产生一个电子表形式的编辑环境。
+这对在数据集上进行小的修改时非常有用的。它的命令是
+
+\begin{example}
+> xnew <- edit(xold)
+\end{example}
+
+\noindent
+这样做允许你编辑数据集 \code{xold}，将修改后的对象
+保存到 \code{xnew} 里面。如果你想更改
+原始的数据集 \code{xold}，最简单的办法是用
+\code{fix(xold)}。它等价于\code{xold <- edit(xold)}。
+
+命令
+
+\begin{example}
+> xnew <- edit(data.frame())
+\end{example}
+
+\noindent
+允许你以电子表格形式的界面输入新数据。

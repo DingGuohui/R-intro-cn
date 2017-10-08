@@ -1,0 +1,393 @@
+\chapter{概率分布}
+\hlabel{Probability distributions}
+\cindex{概率分布}
+
+\section{R 的统计表}
+\hlabel{R as a set of statistical tables}
+
+\R{} 给出了详尽的统计表。\R{} 还提供了相关工具来
+计算累计概率分布函数
+$P(X \le x)$，
+概率密度函数和分位数函数(给定
+\rmath{q}，符合 $P(X \le x) > q$ 的最小\rmath{x}就是对应的分位数)，
+和基于概率分布的计算机模拟。
+
+\begin{quotation}
+\begin{tabbing}
+xxxxxxxxxxxxxxxxxx\=xxxxxxxxxxxxxxxx\=xxxxxxxxxxxxxxxxxxx \kill
+\textbf{概率分布} \> \textbf{\R{} 对应的名字} \> \textbf{附加参数} \\
+β分布 \> \code{beta} \> \code{shape1, shape2, ncp} \\
+二项式分布 \>  \code{binom} \> \code{size, prob} \\
+Cauchy 分布 \> \code{cauchy} \> \code{location, scale} \\
+卡方分布 \> \code{chisq} \> \code{df, ncp} \\
+指数分布 \> \code{exp} \> \code{rate} \\
+F分布 \> \code{f} \> \code{df1, df1, ncp} \\
+γ分布 \> \code{gamma} \> \code{shape, scale} \\
+几何分布 \> \code{geom} \> \code{prob} \\
+超几何分布 \> \code{hyper} \> \code{m, n, k} \\
+对数正态分布 \> \code{lnorm} \> \code{meanlog, sdlog} \\
+logistic 分布 \> \code{logis} \> \code{location, scale} \\
+负二项式分布 \> \code{nbinom} \> \code{size, prob} \\
+正态分布 \> \code{norm} \> \code{mean, sd} \\
+Poisson 分布 \> \code{pois} \> \code{lambda} \\
+t 分布 \> \code{t} \> \code{df, ncp} \\
+均匀分布 \> \code{unif} \> \code{min, max} \\
+Weibull 分布 \> \code{weibull} \> \code{shape, scale} \\
+Wilcoxon 分布 \> \code{wilcox} \> \code{m, n} \\
+\end{tabbing}
+\end{quotation}
+
+\noindent
+不同的名字前缀表示不同的含义，\samp{d}表示概率密度函数，\samp{p} 表示
+累积分布函数（cumulative distribution function，CDF），\samp{q} 表
+示分位函数以及 \samp{r} 表示随机模拟(\emph{r}andom deviates)或者随机数发生器。
+\code{d\var{xxx}} 的第一个参数是\code{x}，\code{p\var{xxx}}是\code{q}，
+\code{q\var{xxx}} 是 \code{p}，和\code{r\var{xxx}}的是\code{n} (\code{rhyper}
+和\code{rwilcox}例外，二者的参数是 \code{nn})。偏态指数（non-centrality parameter） 
+\code{ncp} 现在仅用于累积分布函数，大多数概率密度函数
+和部分其他情况\footnote{译者注：原文为``In not quite all cases is the non-centrality parameter ncp are currently available...''}：
+更细节的内容可以参考在线帮助文档。
+
+\code{p\var{xxx}} 和 \code{q\var{xxx}} 函数都有逻辑
+参数 \code{lower.tail} 和 \code{log.p}, \code{d\var{xxx}}
+也有一个逻辑参数 \code{log}。 这样就让计算函数的各种累积概率值成为可能。
+例如可以通过下式直接计算累计(``积分的'') \emph{风险} （hazard）函数， $H(t) = - \log(1 - F(t))$，
+
+\examp{
+ - p\var{xxx}(t, ..., lower.tail = FALSE, log.p = TRUE)
+}
+
+\noindent
+或用来计算更精确的对数似然值 (\code{d\var{xxx}(..., log =
+TRUE)})。
+
+此外还有函数 \code{ptukey} 和 \code{qtukey} 计算
+来自正态分布样本的标准化全距（studentized range）
+的分布。
+
+这里是一些例子
+\begin{example}
+> ## t分布的双侧p值
+> 2*pt(-2.43, df = 13)
+> ## F(2, 7)分布的上1%分位数
+> qf(0.99, 2, 7)
+\end{example}
+
+\section{检验一个数据集的分布}
+\hlabel{Examining the distribution of a set of data}
+
+我们可以用很多方法分析一个单变量数据集的分布。
+最简单的办法就是直接看数字。利用函数
+\code{summary} 和 \code{fivenum} 会得到
+两个稍稍有点差异的汇总信息。
+\findex{summary}
+\findex{fivenum}
+此外，\code{stem} (``茎叶''图)也会反映整个数据集的数字信息。
+\findex{stem}
+
+\begin{example}
+> attach(faithful)
+> summary(eruptions)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  1.600   2.163   4.000   3.488   4.454   5.100
+> fivenum(eruptions)
+[1] 1.6000 2.1585 4.0000 4.4585 5.1000
+> stem(eruptions)
+
+  The decimal point is 1 digit(s) to the left of the |
+
+  16 | 070355555588
+  18 | 000022233333335577777777888822335777888
+  20 | 00002223378800035778
+  22 | 0002335578023578
+  24 | 00228
+  26 | 23
+  28 | 080
+  30 | 7
+  32 | 2337
+  34 | 250077
+  36 | 0000823577
+  38 | 2333335582225577
+  40 | 0000003357788888002233555577778
+  42 | 03335555778800233333555577778
+  44 | 02222335557780000000023333357778888
+  46 | 0000233357700000023578
+  48 | 00000022335800333
+  50 | 0370
+\end{example}
+
+茎叶图和柱状图相似，\R{} 用函数
+\code{hist} 绘制柱状图。
+\findex{hist}
+
+\begin{example}
+> hist(eruptions)
+> ## 让箱距缩小，绘制密度图
+> hist(eruptions, seq(1.6, 5.2, 0.2), prob=TRUE)
+> lines(density(eruptions, bw=0.1))
+> rug(eruptions) # 显示实际的数据点
+\end{example}
+
+\findex{density}
+\cindex{密度估计}
+更为精致的密度图是用函数 \code{density} 绘制的。在这个例子中，
+我们加了一条由 \code{density} 产生的曲线。你可以用试错法（trial-and-error）
+选择带宽 \code{bw}（bandwidth）因为默认的带宽值让密度曲线过于平滑
+（这样做常常会让你得到非常有``意思''的密度分布）。(现在已经有一些
+自动的带宽挑选方法\footnote{译者注：带宽选择对密度曲线的形状影响很大。
+具体可以参见\code{?density}和\code{?bw.nrd}。}，在这个例子中
+\code{bw = "SJ"}给出的结果不错。)
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=9cm]{images/hist.eps}
+\end{figure}
+
+我们可以用函数 \code{ecdf} 绘制一个数据集的
+经验累积分布（empirical cumulative distribution）
+\findex{ecdf}函数。
+\cindex{经验累积分布函数}
+
+\begin{example}
+> plot(ecdf(eruptions), do.points=FALSE, verticals=TRUE)
+\end{example}
+
+显然，这个分布和其他标准分布差异很大。
+那么右边的情况怎么样呢，就是火山爆发3分钟后的状况？
+我们可以拟合一个正态分布，并且重叠前面得到的经验累积密度分布。
+
+\begin{example}
+> long <- eruptions[eruptions > 3]
+> plot(ecdf(long), do.points=FALSE, verticals=TRUE)
+> x <- seq(3, 5.4, 0.01)
+> lines(x, pnorm(x, mean=mean(long), sd=sqrt(var(long))), lty=3)
+\end{example}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=9cm]{images/ecdf.eps}
+\end{figure}
+
+分位比较图（Quantile-quantile (Q-Q) plot）便于我们更细致地研究二者的吻合程度。
+\cindex{分位比较图}
+\findex{qqnorm}
+\findex{qqline}
+
+\begin{example}
+par(pty="s")       # 设置一个方形的图形区域
+qqnorm(long); qqline(long)
+\end{example}
+
+\noindent
+上述命令得到的QQ图表明二者还是比较吻合的，但右侧尾部
+偏离期望的正态分布。我们可以用 \rmath{t} 分布
+获得一些模拟数据以重复上面的过程
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=7cm]{images/QQ.eps}
+\end{figure}
+
+\begin{example}
+x <- rt(250, df = 5)
+qqnorm(x); qqline(x)
+\end{example}
+
+\noindent
+这里得到的QQ图常常会出现偏离正态期望的长尾区域(如果是随机样本)。
+我们可以用下面的命令针对特定的分布绘制Q-Q图
+
+\begin{example}
+qqplot(qt(ppoints(250), df = 5), x, xlab = "Q-Q plot for t dsn")
+qqline(x)
+\end{example}
+
+最后，我们可能需要一个比较正规的正态性检验方法。
+\R{}提供了 Shapiro-Wilk 检验
+\cindex{Shapiro-Wilk 检验}
+\findex{shapiro.test}
+
+\begin{example}
+> shapiro.test(long)
+
+         Shapiro-Wilk normality test
+
+data:  long
+W = 0.9793, p-value = 0.01052
+\end{example}
+
+\noindent
+和 Kolmogorov-Smirnov 检验
+\cindex{Kolmogorov-Smirnov 检验}
+\findex{ks.test}
+
+\begin{example}
+> ks.test(long, "pnorm", mean = mean(long), sd = sqrt(var(long)))
+
+         One-sample Kolmogorov-Smirnov test
+
+data:  long
+D = 0.0661, p-value = 0.4284
+alternative hypothesis: two.sided
+\end{example}
+
+\noindent
+(注意一般的统计分布理论（distribution theory）在这里可能无效，
+因为我们用同样的样本对正态分布的参数进行
+估计的。)
+
+\section{单样本和双样本检验}
+\hlabel{One- and two-sample tests}
+\cindex{单样本和双样本检验}
+
+到现在为止，我们已经学会了单样本的正态性检验。
+而更常见的操作是比较两个样本的特征。在
+\R{} 里面，所有``传统''的检验都放在
+包 \pkg{stats} 里面。这个包常常会自动载入。
+
+下面是冰融化过程的潜热（latent heat）(\emph{cal/gm})
+数据（来自 Rice (1995, p.490)）
+
+\begin{example}
+Method A: 79.98 80.04 80.02 80.04 80.03 80.03 80.04 79.97
+          80.05 80.03 80.02 80.00 80.02
+Method B: 80.02 79.94 79.98 79.97 79.97 80.03 79.95 79.97
+\end{example}
+
+\noindent
+盒状图（boxplot）为这两组数据提供了简单的图形比较。
+
+\begin{example}
+A <- scan()
+79.98 80.04 80.02 80.04 80.03 80.03 80.04 79.97
+80.05 80.03 80.02 80.00 80.02
+
+B <- scan()
+80.02 79.94 79.98 79.97 79.97 80.03 79.95 79.97
+
+boxplot(A, B)
+\end{example}
+\findex{boxplot}
+\cindex{盒状图}
+
+\noindent
+从图上可以直观的看出第一组数据
+相比第二组数据倾向给出较大的值。
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=7cm]{images/ice.eps}
+\end{figure}
+
+为了比较两个样本的均值是否相等，我们可以使用
+\emph{非配对} \rmath{t}-检验
+\cindex{\rmath{t} 检验}
+\findex{t.test}
+
+\begin{example}
+> t.test(A, B)
+
+         Welch Two Sample t-test
+
+data:  A and B
+t = 3.2499, df = 12.027, p-value = 0.00694
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 0.01385526 0.07018320
+sample estimates:
+mean of x mean of y
+ 80.02077  79.97875
+\end{example}
+
+\noindent
+上面的结果表明在正态前提下\footnote{译者注:\code{t}-检验有正态性假设的, 所以在进行\code{t}-检验前,
+原则上需要做一个数据的正态性检验.}，二者有明显的统计差异。
+\R{} 函数默认两个样本方差不齐，
+而 \sm{SPLUS} 类似函数 \code{t.test}
+则默认方差齐性。如果两个样本都是来自正态群体，
+我们可以用F检验来确定方差的齐性情况，
+
+\begin{example}
+> var.test(A, B)
+
+         F test to compare two variances
+
+data:  A and B
+F = 0.5837, num df = 12, denom df =  7, p-value = 0.3938
+alternative hypothesis: true ratio of variances is not equal to 1
+95 percent confidence interval:
+ 0.1251097 2.1052687
+sample estimates:
+ratio of variances
+         0.5837405
+\end{example}
+\findex{var.test}
+
+\noindent
+这表明二者方差在统计学上没有显著差异，我们可以采用传统的
+假设方差齐性的\rmath{t}-检验。
+
+\begin{example}
+> t.test(A, B, var.equal=TRUE)
+
+         Two Sample t-test
+
+data:  A and B
+t = 3.4722, df = 19, p-value = 0.002551
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 0.01669058 0.06734788
+sample estimates:
+mean of x mean of y
+ 80.02077  79.97875
+\end{example}
+
+所有这些检验都假设了数据的正态性。双样本的
+Wilcoxon (或者 Mann-Whitney) 检验没有正态性的前提，仅仅要求
+在无效假设(null hypothesis)情况下样本来自一个常规的连续分布。
+
+\cindex{Wilcoxon 检验}
+\findex{wilcox.test}
+\begin{example}
+> wilcox.test(A, B)
+
+         Wilcoxon rank sum test with continuity correction
+
+data:  A and B
+W = 89, p-value = 0.007497
+alternative hypothesis: true mu is not equal to 0
+
+Warning message:
+Cannot compute exact p-value with ties in: wilcox.test(A, B)
+\end{example}
+
+\noindent
+注意警告信息：在两个样本中都有同秩现象, 这表明这些数据来自离散分布(可能由于数据的
+近似处理造成)。
+
+有好多种方法可以图形化的显示两个样本的差别。我们已经
+看过盒状图的比较。下面的命令
+
+\begin{example}
+> plot(ecdf(A), do.points=FALSE, verticals=TRUE, xlim=range(A, B))
+> plot(ecdf(B), do.points=FALSE, verticals=TRUE, add=TRUE)
+\end{example}
+
+\noindent
+同时显示两个样本的经验累计概率分布，而 \code{qqplot} 得到的是两个样本的
+Q-Q 图。Kolmogorov-Smirnov 检验是对两个经验累计概率分布间的最大垂直距离
+进行统计的。Kolmogorov-Smirnov 检验只假定数据服从一个常规的
+连续分布：
+
+\begin{example}
+> ks.test(A, B)
+
+         Two-sample Kolmogorov-Smirnov test
+
+data:  A and B
+D = 0.5962, p-value = 0.05919
+alternative hypothesis: two.sided
+
+Warning message:
+cannot compute correct p-values with ties in: ks.test(A, B)
+\end{example}

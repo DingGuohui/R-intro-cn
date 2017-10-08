@@ -1,0 +1,111 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Contents: The title page
+% $Id: title.tex,v 1.2 2002/05/26 22:44:33 zuohuijun Exp $
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifx\pdfoutput\undefined 
+\else
+\pdfbookmark{封面}{title}
+\fi
+
+\newlength{\centeroffset}
+\setlength{\centeroffset}{-0.5\oddsidemargin}
+\addtolength{\centeroffset}{0.5\evensidemargin}
+\thispagestyle{empty}
+
+\vspace{\stretch{2}}
+
+\noindent\makebox[0pt][l]{\begin{minipage}{\textwidth}
+\flushleft
+
+{\huge \bfseries \R{} 导论}
+\noindent\rule[-1ex]{\textwidth}{5pt}\\[2.5ex]
+\flushright
+\hfill\emph{\large 关于~\R{} 语言的注解：一个数据分析和图形显示的程序设计环境\\
+英文版本 2.3.0 (2006-04-24)\\
+中文版本 0.1 (2006-06-15)}
+
+\end{minipage}}
+
+\vfill
+
+\noindent\makebox[0pt][l]{%
+\begin{minipage}{\textwidth}{
+\flushleft
+W. N. Venables, D. M. Smith\\
+R 核心开发小组（the R Development Core Team）\\
+\noindent\rule[-1ex]{\textwidth}{2.5pt}\\[2.5ex]
+}
+\end{minipage}}
+
+\pagebreak
+
+\vspace{\stretch{2}}
+
+\vfill
+
+\begin{small}
+\flushleft
+
+\emph{英文文档的版权说明:}
+
+Copyright \copyright 1990 W.~N.~Venables 
+
+Copyright \copyright 1992 W.~N.~Venables \& D.~M.~Smith 
+
+Copyright \copyright 1997 R.~Gentleman \& R.~Ihaka 
+
+Copyright \copyright 1997, 1998 M.~Maechler 
+
+Copyright \copyright 1999–2006 R Development Core Team
+
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the R Development Core Team.
+
+\vspace{2ex}
+\emph{参考译文如下（具体以英文原文为准）：}
+
+版权  \copyright 1990 W.~N.~Venables               
+                                                   
+版权  \copyright 1992 W.~N.~Venables \& D.~M.~Smith 
+                                                   
+版权  \copyright 1997 R.~Gentleman \& R.~Ihaka      
+                                                   
+版权  \copyright 1997, 1998 M.~Maechler            
+                                                   
+版权  \copyright 1999–2006 R Development Core Team
+
+在遵守并包含本文档版权声明的前提下，制作和发布本文档的完整拷贝是允许的。
+并且，所有这些拷贝均受到本许可声明的保护。
+
+在遵守上述完整拷贝版本有关版权声明的前提下，拷贝和发布基于本文档完整
+拷贝的修改版本是允许的，并且，发布所有通过修改本文档而得到的工作成果，
+须使用与本文档的许可声明一致的许可声明。
+
+在遵守上述修改版本版权声明的前提下，拷贝和发布本文档其它语言的翻译版本
+是允许的，如果本许可声明有经 R 核心开发小组（R Development Core Team）核
+准的当地化译本，则遵循当地化译本。
+
+\vspace{2ex}
+\emph{关于本中文翻译文档的版权声明：}
+
+本文档为自由文档（GNU FDL），
+在GNU自由文档许可证（\url{http://www.gnu.org/copyleft/fdl.html}）下发布，
+不明示或者暗示有任何保证。本文档可以自由复制，修改，散布，但请保留使用
+许可声明。
+
+\end{small}
+
+
+\endinput

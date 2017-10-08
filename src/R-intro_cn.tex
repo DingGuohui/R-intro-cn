@@ -1,0 +1,151 @@
+%\special{ pdf: bgcolor [ 1.00 0.98 0.95 ] }
+\special{ pdf: bgcolor [ 1.00 1.00 1.00 ] }
+
+\ifx\pdfoutput\undefined % We're not running pdftex
+%\documentclass[11pt,a4paper,twoside,openany]{book}
+\documentclass[11pt,a4paper,oneside,openany]{book}
+\else
+%\documentclass[11pt,a4paper,twoside,openany]{book}
+\documentclass[11pt,a4paper,oneside,openany]{book}
+\usepackage{thumbpdf}
+\pdfcompresslevel=9
+\fi
+
+\addtolength{\textwidth}{1.75cm}
+\addtolength{\hoffset}{-0.875cm}
+
+\usepackage{RTranslationCN}
+\usepackage{shortvrb,latexsym}
+\usepackage{mylayout}
+\usepackage{graphicx}
+\ifx\pdfoutput\undefined 
+\usepackage[dvipdfm,
+            colorlinks,linkcolor=blue,citecolor=magenta,
+            hyperindex,
+            plainpages=false,
+            CJKbookmarks]
+            {hyperref}
+\else
+
+%%%%%%%%%%%%%%%%%%%%%增加了CJKbookmarks选项%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage[CJKbookmarks,colorlinks,citecolor=magenta,hyperindex,plainpages=false]{hyperref}
+\def\pdfBorderAttrs{/Border [0 0 0] } % No border arround Links
+\fi
+\hypersetup{pdfstartview=FitH}
+
+\usepackage{CJK,CJKnumb,indentfirst}
+\makeatletter
+\def\@makechapterhead#1{%
+  \vspace*{50\p@}%
+  {\parindent \z@ \centering%\raggedright
+    \normalfont
+    \ifnum \c@secnumdepth >\m@ne
+      \if@mainmatter
+      \huge\bfseries\prechaptername\CJKdigits{\thechapter}\chaptername\hskip 5\p@%
+%        \par\nobreak
+%        \vskip 20\p@
+      \fi
+    \fi
+    \interlinepenalty\@M
+    \huge \bfseries #1\par\nobreak
+    \vskip 40\p@
+  }}
+\def\@makeschapterhead#1{%
+  \vspace*{50\p@}%
+  {\parindent \z@ \centering%\raggedright
+    \normalfont
+    \interlinepenalty\@M
+    \huge \bfseries  #1\par\nobreak
+    \vskip 40\p@
+  }}
+\makeatother
+\usepackage{setspace}
+\onehalfspacing
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%convert bookmarks from GBK to unicode
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\AtBeginDvi{\special{pdf:tounicode GBK-EUC-UCS2}}   % GBK -> Unicode
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\typeout{Copyright T.Oetiker, H.Partl, E.Schlegl, I.Hyna}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand\floatpagefraction{.9}
+\renewcommand\topfraction{.9}
+\renewcommand\bottomfraction{.9}
+\renewcommand\textfraction{.1}
+ 
+\usepackage{multindDGH}
+\makeindex{c}
+\makeindex{f}
+\newcommand{\cindex}[1]{\index{c}{#1}}
+\newcommand{\findex}[1]{\index{f}{#1}}
+
+\newcommand{\email}[1]{\href{mailto:#1}{#1}}
+
+\usepackage{multicol}
+\usepackage{longtable}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{CJK*}{GBK}{com}
+\CJKtilde
+\CJKindent
+
+\newcommand\prechaptername  {\CJKchar{181}{218}}
+\renewcommand\chaptername   {\CJKchar{"0D5}{"0C2}}
+\renewcommand\contentsname  {\CJKchar{"0C4}{"0BF}\CJKchar{"0C2}{"0BC}}
+\renewcommand\abstractname  {\CJKchar{"0D5}{"0AA}\CJKchar{"0D2}{"0AA}}
+\renewcommand\listfigurename{\CJKchar{"0CD}{"0BC}\CJKchar{"0D0}{"0CE}%
+                             \CJKchar{"0C1}{"0D0}\CJKchar{"0B1}{"0ED}}
+\renewcommand\listtablename {\CJKchar{"0B1}{"0ED}\CJKchar{"0B8}{"0F1}%
+                             \CJKchar{"0C1}{"0D0}\CJKchar{"0B1}{"0ED}}
+\renewcommand\figurename    {\CJKchar{"0CD}{"0BC}}
+\renewcommand\tablename     {\CJKchar{"0B1}{"0ED}}
+%\renewcommand\bibname       {\CJKchar{"0B2}{"0CE}\CJKchar{"0BF}{"0BC}%
+%                             \CJKchar{"0CE}{"0C4}\CJKchar{"0CF}{"0D7}}
+\renewcommand\bibname       {附录3 参考文献}
+
+\newcommand{\hlabel}[1]{\hypertarget{#1}{}\label{#1}}
+\newcommand{\hlink}[2]{\hyperlink{#1}{#2}$<$页码：\pageref{#1}$>$}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\frontmatter
+\include{title}
+
+\tableofcontents
+
+\include{preface}
+%\listoffigures
+%\listoftables
+\enlargethispage{\baselineskip}
+\mainmatter
+\include{introduction}
+\include{manipulation}
+\include{object}
+\include{factor}
+\include{array}
+\include{list}
+\include{reading}
+\include{probability}
+\include{conditional}
+\include{functions}
+\include{statistics}
+
+\include{graphics}
+\include{packages}
+%\include{test}
+\backmatter
+\include{appendix}
+\printindex{c}{附录4 概念索引}
+\printindex{f}{附录5 函数索引}
+\include{biblio}
+%\include{contrib}
+\label{verylast}
+\mbox{}
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\end{CJK*}
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}

@@ -1,0 +1,1020 @@
+\chapter{R中的统计模型}
+\hlabel{Statistical models in R}
+\cindex{统计模型}
+
+这一部分假定读者已经对统计方法，特别是回归分析和方差分析有一定的了解。
+后面我们还会假定读者对广义线性模型和非线性模型也有所了解
+\footnote{译者注: 原句为``Later we make some rather more ambitious presumptions, namely
+that something is known about generalized linear models and nonlinear
+regression.''}。
+
+\R{} 已经很好地定义了统计模型拟合中的一些前提条件，因此
+我们能构建出一些通用的方法以用于各种问题。
+
+\R{} 提供了一系列紧密联系的统计模型拟合的工具，使得拟合工作变得简单。
+正如我们在绪论中提到的一样，基本的屏幕输出
+是简洁的，因此用户需要调用一些辅助函数来提取细节的结果信息。
+
+\section{定义统计模型的公式}
+\hlabel{Formulae for statistical models}
+\cindex{公式}
+
+下面统计模型的模板是一个基于
+独立的方差齐性数据的线性模型
+
+\[
+y_i = \sum_{j=0}^p \beta_j x_{ij} + e_i,
+   \qquad e_i \sim {\rm NID}(0,\sigma^2),
+   \qquad i = 1, \dots{}, n
+\]
+
+用矩阵术语表示，它可以写成
+\[
+y = X \beta + e 
+\]
+
+\noindent
+其中 \rmath{y} 是响应向量，\rmath{X} 是\emph{模型
+矩阵}（model matrix）或者\emph{设计矩阵}（design matrix）。\rmath{X} 的列
+\rmath{x_0, x_1, \dots{}, x_p}是
+决定变量（determining variable）。通常，\rmath{x_0}
+列都是1，用来定义\emph{截距}（intercept）项。
+
+\subsubsection{例子}
+
+在给予正式的定义前，举一些的例子可能更容易了解全貌。
+
+假定 \code{y}, \code{x}, \code{x0}, \code{x1}, \code{x2}, \dots{} 是数值
+变量，\code{X} 是一个矩阵，而\code{A}, \code{B},
+\code{C}, \dots{} 是因子。下面的例子中，左边给出公式，
+右边给出该公式的统计模型的描述。
+
+\begin{longtable}{lp{0.68\textwidth}}
+\verb.y ~ x. \\
+\verb.y ~ 1 + x. &
+二者都反映了\rmath{y} 对
+\rmath{x} 的简单线性模型。第一个公式包含了一个隐式的截距项，
+而第二个则是一个显式的截距项。\\
+
+\verb.y ~ 0 + x. \\
+\verb.y ~ -1 + x. \\
+\verb.y ~ x - 1. &
+\rmath{y} 对 \rmath{x} 过原点的简单线性模型
+(也就是说，没有截距项)。\\
+
+\verb.log(y) ~ x1 + x2. &
+\rmath{y} 的变换形式$\log(y)$
+对 \rmath{x1} 和 \rmath{x2} 进行的多重回归 (有一个隐式的截距项)。\\
+
+\verb.y ~ poly(x,2). \\
+\verb.y ~ 1 + x + I(x^2). &
+\rmath{y} 对 \rmath{x} 的二次多项式回归。第一种是
+正交多项式（orthogonal polynomial），第二种则显
+式地注明各项的幂次。\\
+
+\verb.y ~ X + poly(x,2). &
+\rmath{y} 利用模型矩阵
+\rmath{X} 和二次多项式项\rmath{x} 进行多重回归。\\
+
+\verb.y ~ A. &
+\rmath{y} 的单因素方差分析模型，类别
+由 \rmath{A} 决定。\\
+
+\verb.y ~ A + x. &
+\rmath{y} 的单因素协方差分析模型，类别由
+\rmath{A} 决定，协方差项为 \rmath{x}。\\
+
+\verb.y ~ A*B. \\
+\verb.y ~ A + B + A:B. \\
+\verb.y ~ B %in% A. \\
+\verb.y ~ A/B. &
+\rmath{y} 对 \rmath{A} 和 \rmath{B}的非可加两因子方差分析模型 （two factor non-additive model）。
+前两个公式表示相同的交叉分类设计 （crossed classification），
+后两个公式表示相同的嵌套分类设计 (nested classification)。抽象一点说，
+这四个公式指明同一个模型子空间。\\
+
+\verb.y ~ (A + B + C)^2. \\
+\verb.y ~ A*B*C - A:B:C. &
+三因子实验。该模型包括一个主效应（main effects）和两个因子
+的交互效应 （interactions）。这两个公式等价。\\
+
+\verb.y ~ A * x. \\
+\verb.y ~ A/x. \\
+\verb.y ~ A/(1 + x) - 1. &
+在\rmath{A}的各个水平独立拟合 \rmath{y} 对 \rmath{x} 的简单线性回归。
+三个公式的编码不一样。最后一个公式会对 \rmath{A}
+各个水平分别估计截距项
+和斜率项的\footnote{译者注：原句为``Separate simple linear regression models of \rmath{y} on \rmath{x} within
+the levels of \rmath{A}, with different codings.  The last form produces
+explicit estimates of as many different intercepts and slopes as there
+are levels in \rmath{A}.''}。\\
+
+\verb.y ~ A*B + Error(C). &
+一个实验设计有两个处理因素 \rmath{A} 和 \rmath{B}以及
+因子 \rmath{C} 决定的误差分层（error strata）。如在裂区实验设计（split plot experiment）中，
+所有区组（还包括子区组）都由因子~\rmath{C} 决定的。\\
+\end{longtable}
+
+\index{f}{\verb.~.}
+操作符~\code{\~} 用来定义~\R{} 的\emph{模型公式}（model formula）。
+一个普通的线性模型公式可以表示为
+
+\examp{
+\var{response} \~{} \var{op\_1} \var{term\_1} \var{op\_2} \var{term\_2} \var{op\_3} \var{term\_3} \var{\dots{}}
+}
+
+\noindent
+其中
+\begin{description}
+\item [response]
+是一个作为响应变量的向量或者矩阵，
+或者是一个值为向量/矩阵的表达式。
+\item [op\_i]
+是一个操作符。它要么是 \code{+} 要么是 \code{-}，分别表示在一个模型中加入
+或者去掉某一项(公式第一项的操作符可选\footnote{译者注: 即可以省略.}）。
+\item [term\_i]
+可以
+\begin{itemize}
+\item
+是一个向量，矩阵表达式或者\code{1}，
+\item
+因子，
+\item
+是一个由因子，向量或矩阵通过\emph{公式操作符}
+连接产生的\emph{公式表达式}（formula expression）。
+\end{itemize}
+基本上，公式中的项决定了模型矩阵中的列要么被加入要么被去除。
+\code{1} 表示截距项，并且默认就已加入模型矩阵，除非显式地去除这一选项。
+\end{description}
+
+\emph{公式操作符}（formula operators）在效果上和用于程序 Glim 和 Genstat 中的 
+Wilkinson \& Rogers 标记符 (notation) 相似。一个不可避免的改变是
+操作符 \samp{\code{.}} 在~\R{} 里面变成了
+\samp{\code{:}}, 因为点号在 \R{} 里面是合法的命名字符。
+
+这些符号总结如下(参考 Chambers \& Hastie, 1992,
+p.29):
+
+\begin{longtable}{lp{0.7\textwidth}@{}}
+\code{\var{Y} \~{} \var{M}} &
+\var{Y} 由模型 \var{M}解释。\\
+
+\code{\var{M\_1} + \var{M\_2}} &
+同时包括 \var{M\_1} 和 \var{M\_2}项。\\
+
+\code{\var{M\_1} - \var{M\_2}} &
+包括 \var{M\_1} 但排除 \var{M\_2}项。\\
+
+\code{\var{M\_1} : \var{M\_2}} &
+\var{M\_1} 和 \var{M\_2} 的张量积（tensor product）。 如果两项都是
+因子，那么将产生``子类''因子 (subclasses factor)\footnote{译者注：因子交互作用项}。\\
+
+\code{\var{M\_1} \%in\% \var{M\_2}} &
+和 \code{\var{M\_1}:\var{M\_2}} 类似，但编码方式不一样。\\
+
+\code{\var{M\_1} * \var{M\_2}} &
+\code{\var{M\_1} + \var{M\_2} + \var{M\_1}:\var{M\_2}}.\\
+
+\code{\var{M\_1} / \var{M\_2}} &
+\code{\var{M\_1} + \var{M\_2} \%in\% \var{M_1}}.\\
+
+\code{\var{M}\^{}\var{n}} &
+\var{M} 的所有各项以及所有到\var{n}阶为止的``交互作用''项
+\footnote{译者注: 原文为：``All terms in \var{M} together with ``interactions'' up to order \var{n}''}\\
+
+\code{I(\var{M})} &
+隔离 \var{M}。\var{M}内所有操作符当一般的运算符处理。
+并且该项出现在模型矩阵中。\\
+\end{longtable}
+
+注意，在常常用来封装函数参数的括弧中
+的操作符按普通的四则运算法则解释。
+\code{I()} 是一个恒等函数（identity function），它使得
+常规的算术运算符可以用在模型公式中。
+
+还要特别注意模型公式仅仅指定了\emph{模型矩阵的
+列项}，暗含了对参数项的指定。
+在某些情况下可能不是这样，如
+非线性模型的参数指定。
+
+\subsection{对照}
+\hlabel{Contrasts}
+\cindex{对照}
+
+我们至少要知道模型公式是如何指定模型矩阵的列项的。
+对于连续变量这是比较简单的，因为每一个变量对应于
+模型矩阵的一个列(如果模型中包含截距，
+会在矩阵中列出值都是1的一列)。
+
+\cindex{因子}
+\cindex{有序因子}
+对于一个 \rmath{k}-水平的因子 \code{A} 该如何处理呢？无序和有序因子给出的
+结论是不一样的。对于\emph{无序}因子， 因子第2，\dots{}，
+第 \rmath{k} 不同水平的指标产生\rmath{k -
+1} 列。(因此隐含的参数设置就是把
+其他水平和第一个水平的响应程度进行比较)。对于
+\emph{有序}因子，\rmath{k - 1} 列是
+在 \rmath{1, \dots{}, k} 上的正交项（orthogonal polynomial），并且忽略常数项。
+
+尽管这里的回答有点复杂，但这不是事情的全部。
+首先在含有一个因子项的模型中忽略截距项，
+这一项将会被编入指示所有因子水平的 \rmath{k} 列中\footnote{译者注：
+原句为``First, if the intercept is omitted in a model that contains a factor
+term, the first such term is encoded into \rmath{k} columns giving the
+indicators for all the levels.''}。
+其次整个行为可以通过
+\code{options} 设置参数 \code{contrasts} 而改变。
+\R{} 的默认设置为
+
+\begin{example}
+options(contrasts = c("contr.treatment", "contr.poly"))
+\end{example}
+
+\noindent
+提这些内容的主要原因是 \R{} 和 ~\sm{S} 对无序因子
+采用不同的默认值。~\sm{S}采用 Helmert
+对照。因此，当你需要比较你的结果和某本书上或论文上用
+\sm{SPLUS} 代码的结果时，你必须设置
+
+\begin{example}
+options(contrasts = c("contr.helmert", "contr.poly"))
+\end{example}
+
+\noindent
+这是一个经过认真考虑的改变。因为处理对照（treatment contrast）(\R{}默认)
+对于新手是比较容易理解的。
+
+这还没有结束，因为在各个模型的各个项中对照方式可以用
+函数 \code{contrasts} 和 \code{C} 
+重新设置。
+\findex{contrasts}
+\findex{C}
+
+我们还没有考虑交互作用项：这些交互作用项将会产生
+各分量项的乘积\footnote{译者注：原文为``
+We have not yet considered interaction terms: these generate the
+products of the columns introduced for their component terms.''}。
+
+尽管细节是复杂的，\R{} 里面的模型公式
+在要求不是太离谱的情况下可以产生统计专家所期望的各种模型。
+提供模型公式的各种扩展特性是让\R{}更灵活。
+例如，利用关联项而非主要效应的模型拟合
+常常会产生令人惊讶的结果，
+不过这些仅仅为统计专家们设计的。
+
+
+\section{线性模型}
+\hlabel{Linear models}
+\cindex{线性模型}
+
+对于常规的多重模型（multiple model）拟合，最基本的函数是\code{lm()}。
+下面是调用它的方式的一种改进版：
+\findex{lm}
+
+\examp{
+> \var{fitted.model} <- lm(\var{formula}, data = \var{data.frame})
+}
+
+例如
+
+\begin{example}
+> fm2 <- lm(y ~ x1 + x2, data = production)
+\end{example}
+
+\noindent
+将会拟合 \rmath{y} 对 \rmath{x1} 和
+\rmath{x2} 的多重回归模型(和一个隐式的截距项)。
+
+一个重要的(技术上可选)参数是 \code{data =
+production}。它指定任何构建这个模型的变量首先必须来自
+\emph{数据框} \code{production}。
+\emph{这里不需要考虑数据框
+\code{production} 是否被绑定在搜索路径中}。
+
+\section{提取模型信息的泛型函数}
+\hlabel{Generic functions for extracting model information}
+
+\code{lm()} 的返回值是一个模型拟合结果对象；技术上就是属于类
+\code{"lm"} 的一个结果列表。关于拟合模型的信息可以用
+适合对象类 \code{"lm"} 的泛型函数
+显示，提取，图示等等。
+这包括
+
+\begin{example}
+add1    coef       effects   kappa   predict  residuals
+alias   deviance   family    labels  print    step
+anova   drop1      formula   plot    proj     summary
+\end{example}
+
+其中一些常用的泛型函数可以简洁描述如下。
+
+\begin{longtable}{lp{0.4\textwidth}@{}}
+\findex{anova}
+\code{anova(\var{object\_1}, \var{object\_2})} &
+比较一个子模型和外部模型，并且产生方差
+分析表。\\
+
+\findex{coefficients}
+\findex{coef}
+\code{coef(\var{object})} &
+提取回归系数 (矩阵)。\\
+&全称：\code{coefficients(\var{object})}.\\
+
+\findex{deviance}
+\code{deviance(\var{object})} &
+残差平方和，若有权重可加权。\\
+
+\findex{formula}
+\code{formula(\var{object})} &
+提取模型公式信息。\\
+
+\findex{plot}
+\code{plot(\var{object})} &
+产生四个图，显式残差，拟合值和一些
+诊断图\footnote{译者注：主要用于评估模型拟合情况的残差图。}。\\
+
+\findex{predict}
+\code{predict(\var{object}, newdata=\var{data.frame})} &
+提供的数据框必须有同原始变量一样标签的变量。
+结果是对应于\var{data.frame}中决定变量预测值的
+向量或矩阵。\\
+
+\code{predict.gam(\var{object},} \\
+\code{newdata=\var{data.frame})} &
+\code{predict.gam()} 是安全模式的 \code{predict()}。它可以用于
+\code{lm}, \code{glm} 和 \code{gam} 拟合对象。在
+正交多项式作为原始的基本函数并且增加新数据意味着必须使用不同的原始基本函数。\\
+
+\findex{print}
+print(\var{object}) &
+简要打印一个对象的内容。常常隐式使用\footnote{译者注：一般不用print()，直接键入对象名也可以用来显示。}。\\
+
+\findex{residuals}
+\findex{resid}
+\code{residuals(\var{object})} &
+提取残差(矩阵)，有权重时可加权，
+
+省略方式： \code{resid(\var{object})}。\\
+
+\findex{step}
+\code{step(\var{object})} &
+通过增加或者减少模型中的项并且保留层次来选择合适的模型。
+在逐步搜索过程中，AIC (Akaike 信息规范)值\footnote{译者注：\href{mailto:bnjmn_zh@yahoo.com}{Benjamin Zhao}网友觉得这里原文有误，\texttt{step} 
+返回的应该是~AIC 值最小的模型，他/她给出的例子为：
+\texttt {
+\colorbox{exampcolor}{$>$data(swiss);}
+\colorbox{exampcolor}{$>$fit $<$- lm(Fertility\~{}., data=swiss) ;}
+\colorbox{exampcolor}{$>$fit.step $<$- step(fit, trace=F) ;}
+\colorbox{exampcolor}{$>$AIC(fit) ;}
+[1] 326.0716 
+\colorbox{exampcolor}{$>$AIC(fit.step) ;}
+[1] 325.2408 
+}，其中~\texttt{fit.step} 返回模型的~AIC 值明显不是最大值。
+}
+最大的模型将会被返回。\\
+
+\findex{summary}
+\code{summary(\var{object})} &
+显示较详细的模型拟合结果。\\
+\end{longtable}
+
+\section{方差分析和模型比较}
+\hlabel{Analysis of variance and model comparison}
+\cindex{方差分析}
+
+模型拟合函数 \code{aov(\code{formula},
+data=\var{data.frame})}
+\findex{aov}
+和函数
+\code{lm()} 非常的相似，在\hlink{Generic functions for extracting model information}{泛型函数提取模型信息}
+部分列出的泛型函数同样适用。
+
+需要注意的是 \code{aov()} 还允许分析
+多误差层次（multiple error strata）的模型，如裂区实验设计（split plot experiments），
+利用区组内信息进行的平衡不完全区组设计（balanced incomplete block design）等。
+模型公式
+
+\examp{
+\var{response} ~ \var{mean.formula} + Error(\var{strata.formula})
+}
+\findex{Error}
+
+\noindent
+指定了一个多层次实验设计，误差层由\var{strata.formula} 
+定义。最简单的情况是，\var{strata.formula} 是单因素的。
+它定义了一个双层次的实验，也就是研究在这些因子的水平内
+或者水平间的实验响应。
+
+例如，已知所有的决定变量因子，模型公式可以
+设计如下：
+
+\begin{example}
+> fm <- aov(yield ~ v + n*p*k + Error(farms/blocks), data=farm.data)
+\end{example}
+
+\noindent
+这常常用来描述一个同时含有均值模型
+\code{v + n*p*k} 和三个误差层次（``农田之间''，
+``农田内但在区组之间''和``区组内''）的实验。
+
+\subsection{方差分析表}
+\hlabel{ANOVA tables}
+
+方差表的分析实际上是为拟合模型序列(sequence)进行的\footnote{译者注：原句为``
+Note also that the analysis of variance table (or tables) are for a sequence of fitted models.''}。
+在模型序列的\emph{特定地方}增加\emph{特定的项}
+会使残差平方和降低。
+因此仅仅在正交实验中，模型中增加项的
+次序是没有影响的\footnote{译者注: 原句为``Hence only for orthogonal experiments will the order of inclusion
+be inconsequential.''}。
+
+在多层实验设计(multistratum experiments)中，程序首先把响应值依次投射到
+各个误差层次上，并且用均值模型去拟合各个投射。
+细节内容可以参考 Chambers \& Hastie
+(1992)。
+
+除了使用常规的方差分析表（ANOVA table），
+你还可以直接用函数 \code{anova()} 来比较两个模型。这种方法更为灵活。
+\findex{anova}
+
+\examp{
+> anova(\var{fitted.model.1}, \var{fitted.model.2}, \dots{})
+}
+
+结果将是一个方差分析表以显示
+依次加入的拟合模型的差异。需要比较的拟合模型
+常常是等级序列（hierarchical sequence）。这个和默认的设置实际上
+没有差别，只是使它更容易理解
+和控制。
+
+\section{更新拟合模型}
+\hlabel{Updating fitted models}
+\cindex{更新拟合模型}
+
+函数 \code{update()} 是一个非常便利的函数。它允许
+拟合一个比原先模型增加或减少一个项的模型。
+它的形式是
+\findex{update}
+
+\examp{
+> \var{new.model} <- update(\var{old.model}, \var{new.formula})
+}
+
+在 \var{new.formula} 中，公式中包含的句点，
+\samp{\code{.}}，
+\findex{.}
+仅仅表示``旧的公式模型中
+的对应部分''。例如
+
+\begin{example}
+> fm05 <- lm(y ~ x1 + x2 + x3 + x4 + x5, data = production)
+> fm6  <- update(fm05, . ~ . + x6)
+> smf6 <- update(fm6, sqrt(.) ~ .)
+\end{example}
+
+\noindent
+这将分别拟合从数据框 \code{production} 中得到的五个变量的
+多重回归模型，拟合额外增加一个变量的
+六个回归量的模型，和进一步对响应值进行
+平方根变换后的模型拟合。
+
+注意参数 \code{data=} 在最开始调用模型拟合函数的时候指定。
+这个信息将会通过拟合模型对象传递给
+函数 \code{update()} 及其相关者。
+
+符号 \samp{.} 同样可以用在其他情况下，不过含义
+有点不同。如
+
+\begin{example}
+> fmfull <- lm(y ~ . , data = production)
+\end{example}
+
+\noindent
+它将会拟合响应量 \code{y} 对
+\emph{数据框 \code{production} 中所有变量}回归的模型。
+
+其他研究逐步回归的函数是
+\code{add1()}, \code{drop1()} 和 \code{step()}。
+\findex{add1}
+\findex{drop1}
+\findex{step}
+从字面上就可以看出这些函数的意义，更细节的内容可以参考
+在线帮助文档。
+
+\section{广义线性模型}
+\hlabel{Generalized linear models}
+\cindex{广义线性模型}
+
+广义线性建模是线性建模的一种发展，它通过一种简洁而又直接的方式使得线性模型既适合
+非正态分布的响应值又可以进行线性变换\footnote{译者注：原为为：
+``Generalized linear modeling is a development of linear models to
+accommodate both non-normal response distributions and transformations
+to linearity in a clean and straightforward way.''}。
+广义线性模型是基于下面一系列
+假设前提的：
+
+\begin{itemize}
+\item
+有一个有意思的响应变量 \rmath{y}和一系列刺激变量（stimulus variable）
+$x_1$, $x_2$, \dots{}。
+这些刺激变量决定响应变量的最终分布。
+
+\item
+刺激变量\emph{仅仅通过一个线性函数}影响响应值\rmath{y} 的分布。
+该线性函数称为
+\emph{线性预测器}（linear predictor），常常写成
+\[
+\eta = \beta_1 x_1 + \beta_2 x_2 + \cdots + \beta_p x_p, 
+\]
+因此 $x_i$ 当且仅当 $\beta_i=0$ 时对 \rmath{y}的分布没有影响。
+
+\item
+\rmath{y} 分布的形式为
+\[
+f_Y(y;\mu,\varphi)
+= \exp\left[{A \over \varphi}\left\{y\lambda(\mu) -
+\gamma\left(\lambda(\mu)\right)\right\} + \tau(y,\varphi)\right]
+\]
+其中 $\varphi$ 是\emph{尺度参数}（scale parameter）(可能已知)，对所有观测
+恒定，$A$ 是一个先验的权重，假定知道但
+可能随观测不同有所不同，$\mu$ 是
+$y$ 的均值。
+也就是说假定 \rmath{y} 的分布是由
+均值和一个可能的尺度参数决定的。
+
+\item
+均值 $\mu$ 是线性预测器的平滑可逆函数（smooth invertible function）：
+\[
+\mu = m(\eta),\qquad \eta = m^{-1}(\mu) = \ell(\mu) 
+\]
+其中的反函数(inverse function) $\ell()$ 被称为 \emph{关联函数}（link function）。
+
+\end{itemize}
+
+这些假定比较宽松，足以包括统计实践中大多数有用的统计模型，
+同时也足够严谨，使得可以发展参数估计和统计推论(estimation and inference)中一致的方法（
+至少可以近似一致）。
+读者如果想了解这方面最新的进展，可以
+参考 McCullagh \&
+Nelder (1989) 或者 Dobson (1990)。
+
+\subsection{族}
+\hlabel{Families}
+\cindex{族}
+
+\R{} 提供了一系列广义线性建模工具，从类型上来说包括
+\emph{高斯}(gaussian), \emph{二项式}, \emph{泊松}(poisson),
+\emph{逆高斯}(inverse gaussian) 和 \emph{伽马}(gamma) 模型的响应变量分布以及
+响应变量分布无须明确给定的\emph{拟似然}（quasi-likelihood）模型。
+在后者，\emph{方差函数}（variance function）
+可以由均值的函数指定，但在其它情况下，
+该函数可以由响应变量的分布得到。
+
+每一种响应分布允许各种关联函数将均值和线性预测器关联起来。
+这些自动可用的关联函数如下表所示：
+
+\begin{quotation}
+\begin{tabbing}
+xxxxxxxxxxxxxxxxxxxxxxxxx \= xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \kill
+族名字 \> 关联函数 \\
+\code{binomial} \> \code{logit}, \code{probit}, \code{log}, \code{cloglog} \\
+\code{gaussian} \> \code{identity}, \code{log}, \code{inverse} \\
+\code{Gamma} \> \code{identity}, \code{inverse}, \code{log} \\
+\code{inverse.aussian} \> \code{1/mu\^{}2}, \code{identity}, \code{inverse}, \code{log} \\
+\code{poisson} \> \code{identity}, \code{log}, \code{sqrt} \\
+\code{quasi} \> \code{logit}, \code{probit}, \code{cloglog}, \code{identity},\\
+\> \code{inverse}, \code{log}, \code{1/mu\^{}2}, \code{sqrt} 
+\end{tabbing}
+\end{quotation}
+
+这些用于模型构建过程中的响应分布，关联函数和各种
+其他必要的信息统称为广义线性模型的\emph{族}（family）。
+
+\subsection{\code{glm()}函数}
+\hlabel{The glm() function}
+\findex{glm}
+
+既然响应的分布\emph{仅仅}通过单一的一个线性函数依赖于
+刺激变量，那么用于线性模型的机制同样
+可以用于指定一个广义模型的线性部分。
+但是族必须以一种不同的方式指定。
+
+\R{} 用于广义线性回归的函数是 \code{glm()}，
+它的使用形式为
+
+\examp{
+> \var{fitted.model} <- glm(\var{formula}, family=\var{family.generator}, data=\var{data.frame})
+}
+
+和 \code{lm()} 相比，唯一的一个新特性就是描述族的参数\var{family.generator}。
+它其实是一个函数的名字，这个函数将产生一个函数和表达式列表
+用于定义和控制模型的构建与估计过程\footnote{译者注：原文为: 
+``The only new feature is the \var{family.generator}, which is the
+instrument by which the family is described.  It is the name of a
+function that generates a list of functions and expressions that
+together define and control the model and estimation process.''}。
+尽管这些内容开始看起来有点复杂，
+但它们非常容易使用。
+
+这些名字是标准的。程序给定的族生成器可以参见 \hlink{Families}{族} 部分表格中
+的``族名''。当选择一个关联函数时，
+该关联函数名和族名可以同时在括弧里面作为
+参数设定。在 \code{拟}（quasi）
+家族里面，方差函数也是以这种方式设定。
+
+一些例子可能会使这个过程更清楚。
+
+\subsubsection{\code{gaussian}族}
+
+命令
+
+\begin{example}
+> fm <- glm(y ~ x1 + x2, family = gaussian, data = sales)
+\end{example}
+
+\noindent
+和下面的命令结果一致
+
+\begin{example}
+> fm <- lm(y ~ x1+x2, data=sales)
+\end{example}
+
+\noindent
+但是效率上，前者差一点。注意，高斯族没有自动提供关联函数设定的选项，
+因此不允许设置参数。
+如一个问题需要用非标准关联函数的高斯族，
+那么只能采用我们后面讨论的 
+\code{拟}族。
+
+\subsubsection{\code{二项式}族}
+
+考虑 Silvey (1970) 提供的一个人造的小例子。
+
+在 Kalythos 的 Aegean 岛上，男性居民常常患有
+一种先天的眼科疾病，并且随着年龄的增长而变的愈明显。
+现在搜集了各种年龄段岛上男性居民的样本，同时记录了盲眼的数目。
+数据展示如下：
+
+\begin{quotation}
+\begin{tabbing}
+xxxxxxxxxxxxx \= xxx \= xxx \= xxx \= xxx \= xxx \kill
+Age:          \>  20 \>  35 \>  45 \>  55 \>  70 \\
+No.: tested: \>  50 \>  50 \>  50 \>  50 \>  50 \\
+No.: blind:  \>  \w{ 6} \>  17 \>  26 \>  37 \>  44 \\
+\end{tabbing}
+\end{quotation}
+
+我们想知道的是这些数据是否吻合 logistic 和 probit 模型，
+并且分别估计各个模型的 LD50，也就是一个男性居民盲眼的概率
+为50\%时候的年龄。
+
+如果 \rmath{y} 和 \rmath{n} 分别是年龄为 \rmath{x} 时的盲眼数目和检测
+样本数目，两种模型的形式都为
+$$ y \sim {\rm B}(n, F(\beta_0 + \beta_1 x)) $$
+其中在 probit 模型中，
+$F(z) = \Phi(z)$
+是标准的正态分布函数，而在 logit 模型
+(默认)中，
+$F(z) = e^z/(1+e^z)$。
+这两种模型中，
+$$ \hbox{LD50} = -\beta_0/\beta_1 $$
+，即分布函数的参数为0时所在的点。
+
+第一步是把数据转换成数据框,
+
+\begin{example}
+> kalythos <- data.frame(x = c(20,35,45,55,70), n = rep(50,5),
+                         y = c(6,17,26,37,44))
+\end{example}
+
+在 \code{glm()} 拟合二项式模型时，响应变量
+有三种可能性：
+
+\begin{itemize}
+\item
+如果响应变量是\emph{向量}， 则假定操作\emph{二元}（binary）
+数据，因此要求是\rmath{0/1}向量。
+
+\item
+如果响应变量是\emph{双列矩阵}，则假定第一列
+为试验成功的次数第二列
+为试验失败的次数。
+
+\item
+如果响应变量是\emph{因子}，则第一水平作为失败
+(0) 考虑而其他的作为`成功'(1) 考虑。
+\end{itemize}
+
+这里，我们采用的是第二种惯例。我们在数据框中
+增加了一个矩阵：
+
+\begin{example}
+> kalythos$Ymat <- cbind(kalythos$y, kalythos$n - kalythos$y)
+\end{example}
+
+为了拟合这些模型，我们采用
+
+\begin{example}
+> fmp <- glm(Ymat ~ x, family = binomial(link=probit), data = kalythos)
+> fml <- glm(Ymat ~ x, family = binomial, data = kalythos)
+\end{example}
+
+既然 logit 的关联函数是默认的，因此我们可以在第二条命令中省略该参数。
+为了查看拟合结果，我们使用
+
+\begin{example}
+> summary(fmp)
+> summary(fml)
+\end{example}
+
+两种模型都拟合的很好。为了计算 LD50，我们可以
+利用一个简单的函数：
+
+\begin{example}
+> ld50 <- function(b) -b[1]/b[2]
+> ldp <- ld50(coef(fmp)); ldl <- ld50(coef(fml)); c(ldp, ldl)
+\end{example}
+
+从这些数据中得到的年龄分别是43.663年和
+43.601年。
+
+\subsubsection{Poisson 模型}
+
+Poisson 族默认的关联函数是 \code{log}。在实际操作中，
+这一族常常用于拟合计数资料的 Poisson 对数线性模型。
+这些计数资料的实际分布往往符合二项式分布。
+这是一个非常重要而又庞大的话题，我们不想在这里深入展开。
+它甚至是非-高斯广义模型内容的主要部分。
+
+有时候，实践中产生的 Poisson 数据在对数或者平方根
+转化后可当作正态数据处理。
+作为后者的另一种选择是，一个
+Poisson 广义线性模型可以通过下面的方式拟合：
+
+\begin{example}
+> fmod <- glm(y ~ A + B + x, family = poisson(link=sqrt),
+              data = worm.counts)
+\end{example}
+
+\subsubsection{拟似然模型}
+
+对于所有的族，响应变量的方差依赖于均值并且拥有
+作为乘数（multiplier）的尺度参数。
+方差对均值的依赖方式是响应分布的一个特性；
+例如对于poisson分布
+$\hbox{Var}[y] = \mu$。
+
+对于拟似然估计和推断，我们不是设定精确的响应分布而是
+设定关联函数和方差函数的形式，因为关联函数和方差函数都依赖于均值。
+既然拟似然估计和 gaussian 分布使用的技术非常相似，
+因此这一族顺带提供了一种用非标准关联函数或者方差函数
+拟合gaussian模型的方法。
+
+例如，考虑非线性回归的拟合
+$$ y = {\theta_1z_1 \over z_2 - \theta_2} + e $$
+同样还可以写成
+$$ y = {1 \over \beta_1x_1 + \beta_2x_2} + e $$
+其中
+$x_1 = z_2/z_1$, $x_2=-1/x_1$, $\beta_1=1/\theta_1$ and
+$\beta_2=\theta_2/\theta_1$。
+假如有适合的数据框，我们可以如下
+进行非线性拟合
+
+\begin{example}
+> nlfit <- glm(y ~ x1 + x2 - 1,
+               family = quasi(link=inverse, variance=constant),
+               data = biochem)
+\end{example}
+
+如果需要的话，读者可以从其他手册
+或者帮助文档中得到更多的信息。
+
+\section{非线性最小二乘法和最大似然法模型}
+\hlabel{Nonlinear least squares and maximum likelihood models}
+\cindex{非线性最小二乘法}
+
+特定形式的非线性模型可以通过广义线性模型
+(\code{glm()}) 拟合。但是许多时候，我们必须把非线性拟合的问题
+作为一个非线性优化的问题解决。\R{}的非线性优化程序是 \code{optim()}，
+\code{nlm()} 和 \code{nlminb()}（自\R{}2.2.0开始）。
+\findex{nlm}
+\findex{optim}
+二者分别替换 \sm{SPLUS} 的 \code{ms()} 和 \code{nlminb()}但功能更强。
+我们通过搜寻参数值使得缺乏度（lack-of-fit）指标最低，如
+\code{nlm()} 就是通过循环调试各种参数值得到最优值。
+和线性回归不同，程序不一定会收敛到一个稳定值。
+\code{nlm()} 需要设定参数搜索的初始值，
+而参数估计是否收敛在很大程度上依赖于
+初始值设置的质量\footnote{译者注: 可以用一些经验的方法判断初始的参数设定。}。
+
+\subsection{最小二乘法}
+\hlabel{Least squares}
+
+拟合非线性模型的一种办法就是使误差平方和（SSE）或残差平方和最小。
+如果观测到的误差极似正态分布，这种方法是非常有效的。
+
+下面是例子来自 Bates \& Watts (1988)，51页。具体数据是：
+
+\begin{example}
+> x <- c(0.02, 0.02, 0.06, 0.06, 0.11, 0.11, 0.22, 0.22, 0.56, 0.56,
+         1.10, 1.10)
+> y <- c(76, 47, 97, 107, 123, 139, 159, 152, 191, 201, 207, 200)
+\end{example}
+
+被拟合的模型是：
+
+\begin{example}
+> fn <- function(p) sum((y - (p[1] * x)/(p[2] + x))^2)
+\end{example}
+
+为了进行拟合，我们需要估计参数初始值。一种寻找
+合理初始值的办法把数据图形化，然后估计一些参数值，
+并且利用这些值初步添加模型曲线。
+
+\begin{example}
+> plot(x, y)
+> xfit <- seq(.02, 1.1, .05)
+> yfit <- 200 * xfit/(0.1 + xfit)
+> lines(spline(xfit, yfit))
+\end{example}
+
+当然，我们可以做的更好，但是初始值 200 和 0.1 应该足够了。
+现在做拟合：
+
+\begin{example}
+> out <- nlm(fn, p = c(200, 0.1), hessian = TRUE)
+\end{example}
+\findex{nlm}
+
+拟合后，\code{out\$minimum} 是误差的平方和（SSE），
+\code{out\$estimate} 是参数的最小二乘估计值。
+为了得到参数估计过程中近似的标准误(SE)，我们可以：
+
+\begin{example}
+> sqrt(diag(2*out$minimum/(length(y) - 2) * solve(out$hessian)))
+\end{example}
+
+上述命令中的2表示参数的个数。一个95\%
+的信度区间可以通过 $\pm$ 1.96
+SE 计算得到。我们可以把这个最小二乘拟合曲线画在
+一个新的图上：
+
+\begin{example}
+> plot(x, y)
+> xfit <- seq(.02, 1.1, .05)
+> yfit <- 212.68384222 * xfit/(0.06412146 + xfit)
+> lines(spline(xfit, yfit))
+\end{example}
+
+标准包 \pkg{stats} 提供了许多用最小二乘法
+拟合非线性模型的扩充工具。我们刚刚拟合过的模型是
+Michaelis-Menten 模型，因此可以利用下面的命令得到类似的结论。
+
+\begin{example}
+> df <- data.frame(x=x, y=y)
+> fit <- nls(y ~ SSmicmen(x, Vm, K), df)
+> fit
+Nonlinear regression model
+  model:  y ~ SSmicmen(x, Vm, K)
+   data:  df
+          Vm            K
+212.68370711   0.06412123
+ residual sum-of-squares:  1195.449
+> summary(fit)
+
+Formula: y ~ SSmicmen(x, Vm, K)
+
+Parameters:
+    Estimate Std. Error t value Pr(>|t|)
+Vm 2.127e+02  6.947e+00  30.615 3.24e-11
+K  6.412e-02  8.281e-03   7.743 1.57e-05
+
+Residual standard error: 10.93 on 10 degrees of freedom
+
+Correlation of Parameter Estimates:
+      Vm
+K 0.7651
+\end{example}
+
+\subsection{最大似然法}
+\hlabel{Maximum likelihood}
+\cindex{最大似然法}
+
+最大似然法（Maximum likelihood）也是一种非线性拟合方法。它甚至可以用在
+误差非正态的数据中。这种方法估计的参数
+将会使得对数似然值最大或者负的对数似然值
+最小。下面的例子来自 Dobson (1990), pp. :
+108--111。这个例子对剂量－响应数据拟合 logistic模型
+（当然也可以用 \code{glm()} 拟合）。数据是：
+
+\begin{example}
+> x <- c(1.6907, 1.7242, 1.7552, 1.7842, 1.8113,
+         1.8369, 1.8610, 1.8839)
+> y <- c( 6, 13, 18, 28, 52, 53, 61, 60)
+> n <- c(59, 60, 62, 56, 63, 59, 62, 60)
+\end{example}
+
+要使负对数似然值最小，则：
+
+\begin{example}
+> fn <- function(p)
+   sum( - (y*(p[1]+p[2]*x) - n*log(1+exp(p[1]+p[2]*x))
+           + log(choose(n, y)) ))
+\end{example}
+
+\noindent
+我们选择一个适当的初始值，开始拟合：
+
+\begin{example}
+> out <- nlm(fn, p = c(-50,20), hessian = TRUE)
+\end{example}
+\findex{nlm}
+
+\noindent
+拟合后，\code{out\$minimum} 就是负对数似然值，
+\code{out\$estimate} 就是最大似然拟合的参数值。
+为了得到拟合过程近似的标准误，我们可以：
+
+\begin{example}
+> sqrt(diag(solve(out$hessian)))
+\end{example}
+
+参数估计的 95\% 信度期间可由 \code{估计值} $\pm$
+1.96 SE 计算得到。
+
+\section{一些非标准模型}
+\hlabel{Some non-standard models}
+
+在结束本章前，我们简单提一下 \R{} 里面某些用于某些特殊回归和
+数据分析问题的工具。
+
+\begin{itemize}
+\item
+\cindex{混合模型}
+\strong{混合模型（Mixed models）。}用户捐献包 \pkg{nlme} 里面提供了
+函数 \code{lme()} 和 \code{nlme()}。
+\findex{lme}
+\findex{nlme}
+这些函数可以用于混合效应模型（mixed-effects models）的线性和非线性回归。也就是说
+在线性和非线性回归中，一些系数受随机因素的影响。
+这些函数需要充分利用公式来描述模型。
+
+\item
+\cindex{局部近似回归}
+\strong{局部近似回归(Local approximating regressions)。}函数 \code{loess()}
+\findex{loess}
+利用局部加权回归进行一个非参数回归。
+这种回归对显示一组凌乱数据的趋势和
+描述大数据集的整体情况非常有用。
+
+函数 \code{loess} 和投影跟踪回归（projection pursuit regression）的代码
+一起放在标准包 \pkg{stats} 中。
+\findex{loess}
+
+\item
+\cindex{稳健回归}
+\strong{稳健回归(Robust regression)。}有多个函数可以用于
+拟合回归模型，同时尽量不受数据中
+极端值的影响。在推荐包 \pkg{MASS} 中的函数 \code{lqs}
+\findex{lqs}
+为高稳健性的拟合提供了最新的算法。另外，稳健性较低但统计学上高效的方法
+同样可以在包 \pkg{MASS} 中得到，
+如函数
+\code{rlm}。
+\findex{rlm}
+
+\item
+\cindex{累加模型}
+\strong{累加模型(Additive models)。}这种技术期望可以通过决定变量的
+平滑累加函数（smooth additive function）构建回归函数。一般来说，每个决定变量
+都有一个平滑累加函数。用户捐献的包 \pkg{acepack} 里面的函数 \code{avas} 和
+\code{ace}
+\findex{avas}
+\findex{ace}
+以及包 \pkg{mda} 里面的函数 \code{bruto} 和 \code{mars}
+\findex{bruto}
+\findex{mars}
+为这种技术提供了一些例子。
+这种技术的一个扩充是用户捐献包 
+\pkg{gam} 和 \pkg{mgcv} 里面实现
+的\strong{广义累加模型}。
+
+\item
+\cindex{树型模型}
+\strong{树型模型(Tree-based models)。}除了利用外在的全局线性模型
+预测和解释数据，还可以利用树型模型递归地在决定性变量的判断点上将
+数据的分叉分开。这样做会把数据最终分成几个不同组，使得
+组内尽可能相似而组间尽可能差异。
+这样常常会得到一些其他数据分析方法不能
+产生的的信息。
+
+模型可以用一般的线性模型形式指定。该模型拟合函数
+是 \code{tree()}，
+\findex{tree}
+而且许多泛型函数，如 \code{plot()} 和 \code{text()}
+都可以很好的用于树型模型拟合结果的图形显示。
+
+\R{} 里面的树型模型函数可以\emph{通过}用户捐献的包
+\pkg{rpart} 和 \pkg{tree} 得到。
+
+\end{itemize}

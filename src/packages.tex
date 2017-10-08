@@ -1,0 +1,111 @@
+\chapter{包}
+\cindex{包}
+\hlabel{Packages}
+
+所有的 \R{} 函数和数据集是保存在\emph{包}（packages）里面的。只有当一个
+包被载入时，它的内容才可以被访问。这样做一是为了高效
+(完整的列表会耗去大量的内存并且增加搜索的时间)，
+一是为了帮助包的开发者防止命名和其他代码中的名字冲突。
+开发包的过程在
+\href{R-exts_cn.pdf}{编写\R{}的扩展}里面有详细的介绍。这里，我们仅仅从用户的角度来
+描述这个问题。
+
+可以使用下面的命令查看你当前环境中安装的包
+
+\begin{example}
+> library()
+\end{example}
+
+\noindent
+命令中没有参数。为了载入某个特别的包(如包 \pkg{boot}
+，其中包含的函数来自 Davison \& Hinkley (1997))，使用
+如下命令
+
+\begin{example}
+> library(boot)
+\end{example}
+
+用户可以使用函数 \code{CRAN.packages()}
+连接因特网 (也可以通过 Windows 和 RAqua 图形界面上的 \code{Packages} 菜单访问)
+，并且允许自动更新和安装包。
+
+为了查看当前有那些包载入了，可以用
+
+\begin{example}
+> search()
+\end{example}
+
+\noindent
+产生搜索列表。有一些列表虽然被载入但不会
+出现在搜索列表中(\hlink{Namespaces}{命名空间})。
+
+为了查看已经安装的包的所有可以访问的帮助主题列表，
+可以使用
+
+\begin{example}
+> help.start()
+\end{example}
+
+\noindent
+这将启动一个 \HTML{} 形式的帮助系统，然后通过
+\code{Reference} 部分链接到所有包的列表。 
+
+\section{标准包}
+\hlabel{Standard packages}
+
+标准(\emph{基本})包构成 \R{} 原代码的一个重要部分。
+它们包括允许 \R{} 工作的的基本函数，和本文档中描述的
+数据集，标准统计和图形工具。
+在任何 \R{} 的安装版本中，它们都会被自动获得。
+在\href{R-FAQ_cn.pdf}{\R{}常见问题集}里面可以得到一个完整的列表。
+
+\section{捐献包和 \acronym{CRAN}}
+\cindex{CRAN}
+\hlabel{Contributed packages and CRAN}
+
+世界各地的作者为 \R{} 捐献了好几百个包。
+其中一些包实现了特定的统计方法，另外一些
+给予数据和硬件的访问接口，其他则
+作为教科书的补充材料。一些包(\emph{推荐}
+包)和二进制形式的 \R{} 捆绑发布。更多的可以从
+\textbf{CRAN}
+(\url{http://CRAN.R-project.org/} 和它的镜像)和其他一些
+资源，如 Bioconductor (\url{http://www.bioconductor.org/}) 下载得到。
+\emph{\R{}常见问题集} 含有一个已经发布包的列表，
+不过可以得到的包的清单变更是非常迅速的。
+
+\section{命名空间}
+\cindex{命名空间}
+\findex{::}
+\findex{:::}
+\hlabel{Namespaces}
+
+包有自己的\emph{命名空间}（namespaces），并且现在所有基本的和推荐的
+的包都依赖于包 \code{datasets}。命名空间主要三个作用：
+它们允许包的作者隐藏函数和数据，即只允许内部用户使用，
+它们防止函数在一个用户（或其他包的作者）使用
+相同名字时被破坏，它们提供了一种
+访问特定包的某个对象的方法。
+
+例如，\code{t()} 是 \R{} 里面的转置函数，但是用户
+可能会定义一个函数叫 \code{t}。命名空间
+防止用户定义的函数居先和破坏
+矩阵转置的函数。
+
+有两个操作符和命名空间相关。双冒号操作符
+\code{::} 选择一个特定命名空间得到的函数定义。
+在上面的例子中，转置函数总是可以通过
+\code{base::t} 使用，因为它是在包 \code{base} 中定义的。
+一个包中的函数可以通过这种方式访问。
+
+三冒号操作符 \code{:::} 可能会出现在一些 \R{} 代码中：
+它有点像双冒号操作符，但可以访问隐藏对象。
+用户还可能使用函数 \code{getAnywhere()}，
+它会搜索多重包。
+
+包常常是包之间依赖的（inter-dependent），载入其中一个可能会引起其他包
+的自动载入。上面提到的冒号操作符同样会引起
+相关包的自动载入。当有命名空间的包自动载入时，
+它们不会被自动加入
+搜索列表。
+

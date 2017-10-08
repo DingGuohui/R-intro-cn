@@ -1,0 +1,720 @@
+\chapter{数组和矩阵}
+\hlabel{Arrays and matrices}
+
+\section{数组}
+\hlabel{Arrays}
+\cindex{数组}
+\cindex{矩阵}
+
+数组可以看作是带有多个下标类型相同的元素
+集合，如数值型。\R{} 有一些简单的工具创建和处理数组，特别是
+矩阵。
+
+维度向量（dimension vector）是一个正整数向量。如果它的长度为
+\rmath{k}，那么该数组就是\rmath{k}-维的，例如矩阵是
+\rmath{2}-维数组。数组中元素的下标可以从1一直标到
+维度向量中对应元素的值。
+
+向量只有在定义了~\emph{dim} 属性后才能作为数组在
+\R{} 中使用。假定，\code{z}是一个含1500
+个元素的向量。那么
+
+\begin{example}
+> dim(z) <- c(3,5,100)
+\end{example}
+\findex{dim}
+
+\noindent
+对 \emph{dim} 属性的赋值使得该向量成一个
+\rmath{3} × \rmath{5} × \rmath{100} 的数组。
+
+其他函数，如\code{matrix()} 和 \code{array()} 可以
+更直观更容易地定义，具体参见
+\hlink{The array() function}{\code{array()}函数}部分.
+
+数据向量（data vector）的值在数组中的排列顺序
+采用~FORTRAN 方式的数组元素次序，即``按列次序''，
+也就是说第一下标变化最快，最后下标变化最慢。
+
+假定数组\code{a}的维数向量是
+\code{c(3,4,2)}，则 \code{a} 中有 $3 \times 4 \times 2 = 24$ 元素，依次为
+\code{a[1,1,1], a[2,1,1], \dots{}, a[2,4,2], a[3,4,2]}。
+
+数组可以是一维的：这种数组的处理
+和向量完全一致(包括屏幕显示)，只是有时
+会导致一些混乱。
+
+\section{数组索引以及数组分割}
+\hlabel{Array indexing}
+\cindex{数组索引}
+
+数组元素可以通过给定
+数组名及其后方括号中用逗号
+隔开的下标访问。
+
+更为一般的是，数组分割可以通过
+在下标位置给定一系列\emph{索引向量}实现；需要注意的是，
+\emph{如果某个位置上给定的索引向量为空，
+则该下标处所有可能值都会被取到}。
+
+延续前面的例子，\code{a[2,,]} 是一个 $4 \times 2$ 的数组。它的维度向量为\code{c(4,2)}，数据向量依次包括下面
+的值
+
+\begin{example}
+c(a[2,1,1], a[2,2,1], a[2,3,1], a[2,4,1],
+  a[2,1,2], a[2,2,2], a[2,3,2], a[2,4,2])
+\end{example}
+
+\noindent
+\code{a[,,]}表示整个数组。
+这和忽略下标直接使用 \code{a} 效果是一样的。
+
+对于数组 \code{Z}，用 \code{dim(Z)} 可以对 
+该数组维度向量进行显式的访问(可以放在赋值的任何一边)。
+
+还有，如果一个数组仅给出\emph{一个下标或索引向量
+}，那么只有数据向量中对应的值才会被访问；
+在这种情况下，维度向量会被忽略的。但是，
+如果单个索引不是一个向量而是一个数组，可能就不是这样了，
+具体可以看下面的讨论。
+
+\section{索引数组}
+\hlabel{Index arrays}
+
+和用于下标位置的索引向量一样，可以根据
+\emph{索引数组}去给数组中不规则的元素集合赋值
+或者将
+数组中特定的元素返回到一个向量中。
+
+用矩阵作为例子使这个过程变的更容易理解。在一个二维索引
+数组中，索引矩阵 μ 可以假定含有两列及
+任意多行。索引矩阵中的元素就是
+数组的行列索引。假定
+我们有一个 \rmath{4} × \rmath{5} 的数组 \code{X}，我们可以
+做如下的事情：
+
+\begin{itemize}
+\item
+以向量的格式取出元素 \code{X[1,3]}, \code{X[2,2]} 
+和 \code{X[3,1]}，
+\item
+在数组 \code{X} 中用0替换这些元素。
+\end{itemize}
+在这个例子中，我们需要一个 \rmath{3} × \rmath{2} 的下标数组，见
+下面的代码。
+
+\begin{example}
+> x <- array(1:20, dim=c(4,5))   # 产生一个 4 × 5 的数组。
+> x
+     [,1] [,2] [,3] [,4] [,5]
+[1,]    1    5    9   13   17
+[2,]    2    6   10   14   18
+[3,]    3    7   11   15   19
+[4,]    4    8   12   16   20
+> i <- array(c(1:3,3:1), dim=c(3,2))
+> i        # i 是一个 3 × 2 的索引矩阵。
+     [,1] [,2]
+[1,]    1    3
+[2,]    2    2
+[3,]    3    1
+> x[i]                          # 提取这些元素。
+[1] 9 6 3
+> x[i] <- 0                     # 用0替换这些元素。
+> x
+     [,1] [,2] [,3] [,4] [,5]
+[1,]    1    5    0   13   17
+[2,]    2    0   10   14   18
+[3,]    0    7   11   15   19
+[4,]    4    8   12   16   20
+>
+\end{example}
+
+下面是一个不太明显的例子，假定我们要从
+一个双因子\code{blocks}(\code{b}水平)和\code{varieties} (\code{v} 水平)定义的
+ 区组化设计实验中得到一个设计矩阵。进一步假定
+实验进行了\code{n}次。我们可以按
+下面的步骤进行：
+
+\begin{example}
+> Xb <- matrix(0, n, b)
+> Xv <- matrix(0, n, v)
+> ib <- cbind(1:n, blocks)
+> iv <- cbind(1:n, varieties)
+> Xb[ib] <- 1
+> Xv[iv] <- 1
+> X <- cbind(Xb, Xv)
+\end{example}
+
+我们则可以用下面的办法创建关联矩阵 \code{N}，
+
+\begin{example}
+> N <- crossprod(Xb, Xv)
+\end{example}
+\findex{crossprod}
+
+但是最简单最直接的办法是使用函数
+\code{table()}：
+\findex{table}
+
+\begin{example}
+> N <- table(blocks, varieties)
+\end{example}
+
+\section{\code{array()} 函数}
+\hlabel{The array() function}
+\findex{array}
+
+除了用设定一个向量 \code{dim} 属性的方法来构建数组，它还可
+直接通过函数 \code{array} 将向量转换得到，具体格式
+为
+
+\examp{
+> Z <- array(\var{data\_vector}, \var{dim\_vector})
+}
+
+假定向量 \code{h} 有24个或更少的数值，
+那么命令
+
+\begin{example}
+> Z <- array(h, dim=c(3,4,2))
+\end{example}
+
+\noindent
+就会利用 \code{h} 在 \code{Z} 中创建一个 \rmath{3} × \rmath{4} × \rmath{2} 的数组。
+如果 \code{h} 的长度正好是24，那么就和下面的
+命令等价
+
+\begin{example}
+> dim(Z) <- c(3,4,2)
+\end{example}
+
+如果 \code{h} 的长度小于 24，它的元素将会被循环使用
+直到长度为 24 (见\hlink{The recycling rule}{向量元素的循环使用规则})。
+一个极端但又普遍的例子是
+
+\begin{example}
+> Z <- array(0, c(3,4,2))
+\end{example}
+
+\noindent
+这样就会使得 \code{Z} 是一个所有值都是0的数组。
+
+此时， \code{dim(Z)} 表示维度向量
+\code{c(3,4,2)}，\code{Z[1:24]} 表示数据向量
+（就像在向量~\code{h} 中一样）。空下标的\code{Z[]} 和没有下标的 \code{Z} 
+都表示整个数组。
+
+数组可用于算术表达式中，并且结果就是
+一个基于数据向量的对应元素运算而得到的数组。所有操作数的属性
+\code{dim} 必须一致，而这个属性同样也是
+最终结果的维度向量。因此，如果 \code{A},
+\code{B} 和 \code{C} 是相似矩阵，那么
+
+\begin{example}
+> D <- 2*A*B + C + 1
+\end{example}
+
+\noindent
+\code{D} 同样是一个相似矩阵。它的值是由给定操作数的
+对应元素计算所得。但是对于数组和向量的混合运算还是
+要小心一点。
+
+\subsection{向量和数组混合运算以及循环使用原则}
+\hlabel{The recycling rule}
+\cindex{循环使用原则}
+
+向量和数组间对应元素混合运算的确切规则有点
+诡异，并且很难在参考文献中
+找到权威的说法。根据经验，我们列出下面的
+一些比较可靠的说明。
+
+\begin{itemize}
+\item
+表达式运算是从左到右进行的；
+\item
+短的向量操作数将会被循环使用
+以达到其他操作数的长度；
+\item
+有且只有短的向量和数组在一起，
+数组必须有一样的属性\code{dim}，否则返回一个错误\footnote
+{译者注: 原文为"As long as short vectors and arrays \strong{only} are encountered, the arrays must all have the same
+\code{dim} attribute or an error results."}；
+\item
+向量操作数比矩阵或者数组操作数长时会引起错误；
+\item
+如果数组结构给定，同时也没有关于向量的错误信息和强制转换操作，
+结果将是一个和它的数组操作数属性\code{dim} 一致的数组。
+\end{itemize}
+
+\section{数组的外积}
+\hlabel{The outer product of two arrays}
+\cindex{数组的外积}
+
+数组一个非常重要的运算就是\emph{外积运算}（outer product）。如果
+\code{a} 和 \code{b} 是两个数值数组，它们的外积将是这样的一个数组：
+维度向量通过连接两个操作数的维度向量(顺序非常的重要)得到；数据向量则由
+\code{a} 的数据向量元素和 \code{b} 的数据向量元素的所有可能乘积得到。
+外积是通过特别的操作符
+\code{\%o\%}实现：
+\index{f}{\%o\%}
+
+\begin{example}
+> ab <- a %o% b
+\end{example}
+
+一种备选的方案是，
+
+\begin{example}
+> ab <- outer(a, b, "*")
+\end{example}
+\findex{outer}
+
+命令中的乘法操作符可以被任意一个双变量函数代替。
+例如，我们想研究函数
+$f(x; y) = \cos(y)/(1 + x^2)$
+在~\R{} 在向量 \code{x} 和 \code{y}形成的格子平面（regular grid）
+上的特征，可以按下面
+的步骤进行：
+
+\begin{example}
+> f <- function(x, y) cos(y)/(1 + x^2)
+> z <- outer(x, y, f)
+\end{example}
+
+特别是，两个常规向量的外积是一个双下标的数组
+(就是矩阵，最大秩为1)。注意，
+外积运算不符合交换律。定义你自己的
+~\R{} 函数可以参考 \hlink{Writing your own
+functions}{编写你自己的函数}.
+
+\subsubsection{一个例子：2 × 2 数字矩阵的行列式}
+
+这是一个简单但能说明问题的例子，计算一个 \rmath{2}
+× \rmath{2} 的矩阵 \rmath{[a, b; c, d]} 的行列式。该矩阵的所有元素
+是\rmath{0, 1, \dots{}, 9}里面的
+一个数字。
+
+我们的问题是找出所有这种组合形式的矩阵行列式 ~\rmath{ad - bc}，
+同时以\emph{高密度}（high density）图的形式显示
+这些行列式值的分布。如果所有数字的选取是独立随机的，
+这样做实际上会得到所有行列式的概率分布图。
+
+解决这个问题一个巧妙的办法就是两次使用函数 \code{outer()}：
+
+\begin{example}
+> d <- outer(0:9, 0:9)
+> fr <- table(outer(d, d, "-"))
+> plot(as.numeric(names(fr)), fr, type="h",
+       xlab="Determinant", ylab="Frequency")
+\end{example}
+
+注意，这里把频率表的属性 \code{names} 强制转换成
+数值以表示行列式值的范围。``显式''解决这个问题是用 \code{for} 循环语句。这个将在
+\hlink{Loops and conditional execution}{循环和条件控制} 部分讨论，不过效率太低
+以至现实中很少采用。
+
+还有一点比较奇怪的是，每20个这样的矩阵就有
+有一个矩阵是奇异矩阵\footnote{译者注: 原文是"It is also perhaps surprising that about 1 in 20 such matrices is singular."}。
+
+\section{数组的广义转置}
+\hlabel{Generalized transpose of an array}
+\cindex{数组的广义转置}
+
+函数 \code{aperm(a, perm)}
+\findex{aperm}
+可以用来重排一个数组 \code{a}。参数 \code{perm}
+可以是 \rmath{\{1, \dots{}, k\}}的一个排列，其中
+\rmath{k} 是 \code{a} 的下标数目。这个函数将产生
+一个和\code{a}大小一致的数组，不过旧的维度
+\code{perm[j]}将会变成第\code{j}个维度。
+这种操作实际上是对矩阵的一种广义转置。
+事实上，如果 \code{A}是一个矩阵(
+双下标数组)， 那么 \code{B} 
+
+\begin{example}
+> B <- aperm(A, c(2,1))
+\end{example}
+
+\noindent
+仅仅是 \code{A} 的一个转置。这种情况下，有一个简单的
+函数 \code{t()}
+\findex{t}
+可以使用。因此，我们可以用命令 \code{B <- t(A)}代替上面的语句。
+
+\section{矩阵工具}
+\hlabel{Matrix facilities}
+
+正如前面面所说，矩阵仅仅是一个双下标的数组。但是，
+它非常的重要，以至于需要单独讨论。
+\R{} 包括许多只对矩阵操作的操作符和函数。
+例如上面提到的\code{t(X)}就是矩阵的转置函数。
+函数 \code{nrow(A)} 和 \code{ncol(A)} 将会分别返回
+矩阵\code{A} 的行数和列数。
+\findex{nrow}
+\findex{ncol}
+
+\subsection{矩阵相乘}
+\hlabel{Multiplication}
+
+\cindex{矩阵相乘}
+操作符 \code{\%*\%} 用于矩阵相乘。
+\index{f}{\%*\%}
+\rmath{n} × \rmath{1} 或者 \rmath{1} × \rmath{n} 矩阵在情况允许的时候
+可以作为一个长度为 \rmath{n} 的向量处理。
+反之，向量若出现在矩阵相乘的表达式中
+会被自动转换成与矩阵对应
+的行或者列向量（有时候比较含糊
+，后面会有所论述）。
+
+如果 \code{A} 和 \code{B} 是大小一样的方阵，
+那么
+
+\begin{example}
+> A * B
+\end{example}
+
+\noindent
+将是一个对应元素乘积的矩阵，而
+
+\begin{example}
+> A %*% B
+\end{example}
+
+\noindent
+则是一个矩阵积。如果 \code{x} 是一个向量，那么
+
+\begin{example}
+> x %*% A %*% x
+\end{example}
+
+\noindent
+一个二次型（quadratic form）\footnote{注意 \code{x \%*\% x} 不很明确，因为它
+既可表示 $x'x$ 又可表示 $xx'$，其中 $x$ 是
+列形式。在这种情况下，小矩阵好像比较符合上面的解释，
+因此标量 $x'x$ 是
+结果（译者注：这里我也有点困惑，只是字面上翻译了）。矩阵 $xx'$ 可以通过 \code{cbind(x)
+\%*\% x} 或者 \code{x \%*\% rbind(x)} 计算因为 \code{rbind()} 或者
+\code{cbind()} 的结果都是矩阵。但是，计算
+$x'x$ 和 $xx'$ 最好的办法是\code{crossprod(x)} 
+或者 \code{x \%o\% x}。}。
+
+\findex{crossprod}
+函数 \code{crossprod()} 可以完成``矢积''（crossproduct）运算，也就是说
+\code{crossprod(X, y)} 和 \code{t(X) \%*\% y} 等价，但是
+在运算上更为高效。如果
+\code{crossprod()} 第二个参数忽略了，它将默认和第一个参数一样，即第一个参数和自己进行运算。
+
+\findex{diag}
+函数 \code{diag()} 的含义依赖于它的参数。当 \code{v} 是一个向量时，
+\code{diag(v)}返回以该向量元素为对角元素的
+对角矩阵。当 \code{M} 是一个矩阵时，\code{diag(M)}
+返回\code{M}的对角元素。
+这和 \sm{Matlab} 中 \code{diag()} 的用法完全一致。
+不过有点混乱的是，如果 \code{k} 是单个值
+\footnote{译者注：正整数和小数都可以，对于正实数会自动去掉小数部分.}，
+那么 \code{diag(k)} 的结果就是 \code{k} × \code{k} 的方阵！
+
+\subsection{线性方程和求逆}
+\hlabel{Linear equations and inversion}
+
+\cindex{线性方程}
+\findex{solve}
+求解线性方程组是矩阵乘法的逆运算。
+当下面的命令运行后，
+
+\begin{example}
+> b <- A %*% x
+\end{example}
+
+\noindent
+如果仅仅给出 \code{A} 和 \code{b}，那么 \code{x} 就是
+该线性方程组的根。在 \R{} 里面，用命令
+
+\begin{example}
+> solve(A,b)
+\end{example}
+
+\noindent
+求解线性方程组，并且返回 \code{x} (可能会有一些精度丢失)。
+注意，在线性代数里面该值表示为
+$x = A^{-1} b$
+，其中
+$A^{-1}$表示$A$的\emph{逆}（inverse）。
+矩阵的逆可以用下面的命令计算，
+
+\begin{example}
+solve(A)
+\end{example}
+
+\noindent
+不过一般很少用到。在数学上，用直接求
+逆的办法解\code{x <- solve(A) \%*\% b}相比\code{solve(A,b)}不仅
+低效而且还有一种潜在的不稳定性。
+
+用于多元计算的二次型 $x' A^{-1} x$可以通过
+\footnote{最好的方式当然是
+用$A = BB'$求解矩阵平方根$B$ 和利用 $A$
+的 Cholesky 或特征值分解的办法得到 $By = x$ 的解的
+自乘长度（squared length）。译者注：这里我还没有完全弄明白，可以参见原文注解
+``Even better would be to form a matrix square root $B$ with $A = BB'$ and find the squared length of the
+solution of $By = x$, perhaps using the Cholesky or eigendecomposition of $A$.''。}像\code{x \%*\% solve(A,x)}的方式计算得到，而不是
+直接计算 \code{A} 的逆。
+
+\subsection{特征值和特征向量}
+\hlabel{Eigenvalues and eigenvectors}
+\cindex{特征值和特征向量}
+
+\findex{eigen}
+函数 \code{eigen(Sm)} 用来计算矩阵 \code{Sm} 的特征值
+和特征向量。这个函数的返回值
+是一个含有 \code{values} 和
+\code{vectors} 两个分量的列表。命令
+
+\begin{example}
+> ev <- eigen(Sm)
+\end{example}
+
+\noindent
+将把这个列表赋给 \code{ev}。\code{ev\$val} 表示
+\code{Sm} 的特征值向量，\code{ev\$vec} 则是
+相应特征向量构成的一个矩阵。假定我们仅仅需要特征值，
+我们可以采用如下的命令：
+
+\begin{example}
+> evals <- eigen(Sm)$values
+\end{example}
+
+\noindent
+\code{evals} 现在拥有特征向量，而第二个分量
+则被抛弃了。如果以下面的表达式作为一个命令，
+
+\begin{example}
+> eigen(Sm)
+\end{example}
+
+\noindent
+这两个成分连同它们的名字都会被显示。
+对于大的矩阵，若无必要，最好
+不要用下面的表达式计算特征向量
+
+\begin{example}
+> evals <- eigen(Sm, only.values = TRUE)$values
+\end{example}
+
+
+\subsection{奇异值分解和行列式}
+\hlabel{Singular value decomposition and determinants}
+\cindex{奇异值分解}
+
+\findex{svd}
+函数 \code{svd(M)} 可以把任意一个矩阵 \code{M}作为一个参数, 
+且对 \code{M} 进行奇异值分解。这包括
+一个和 \code{M} 列空间一致的正交列 \code{U} 的矩阵，
+一个和 \code{M} 行空间一致的正交列 \code{V} 的矩阵，
+以及一个正元素 \code{D} 的对角矩阵，如 \code{M = U \%*\% D \%*\%
+t(V)}。
+\code{D} 实际上以对角元素向量的形式返回。
+\code{svd(M)} 的结果是由
+\code{d}, \code{u} 和 \code{v} 构成的一个列表。
+
+如果 \code{M} 是一个方阵，就不难看出
+
+\begin{example}
+> absdetM <- prod(svd(M)$d)
+\end{example}
+
+\noindent
+计算 \code{M} 行列式的绝对值。如果
+在各种矩阵中都需要这种运算，我们可以把它
+定义为一个 \R{} 函数
+
+\begin{example}
+> absdet <- function(M) prod(svd(M)$d)
+\end{example}
+
+\cindex{行列式}
+\noindent
+此后, 我们可以把 \code{absdet()} 当一个 \R{} 函数使用了。
+作为一个零碎但可能很有用的例子，你应该考虑
+写一个计算方阵迹（trace）的函数 \code{tr()}
+[提示: 你不需要外在的循环,
+仔细看一下函数\code{diag()}]。
+
+\findex{det}
+\findex{determinant}
+\R{} 有一个计算行列式（包括符号）的内置函数 \code{det}
+和另外一个给出符号和模（对数坐标可选）
+的函数。
+
+\subsection{最小二乘法拟合和 QR 分解}
+\hlabel{Least squares fitting and the QR decomposition}
+\cindex{最小二乘法拟合}
+\cindex{QR 分解}
+
+函数 \code{lsfit()} 返回最小二乘法拟合（Least squares fitting）的结果列表。
+赋值可以采用入下命令
+
+\begin{example}
+> ans <- lsfit(X, y)
+\end{example}
+\findex{lsfit}
+
+\noindent
+这样就得到最小二乘法拟合结果，其中 \code{y} 是观测向量
+，\code{X} 是设计矩阵。更细节的东西可以查看
+帮助文档，同时参考相关的回归诊断（regression diagnostics）
+函数 \code{ls.diag()}。注意总的平均值
+会被自动加入而没有必要显式的加入到
+\code{X}的列中。实际上，你
+在回归分析中可能已经习惯使用
+\code{lm(.)} (见\hlink{Linear models}{线性模型}部分) 而不是 \code{lsfit()}。
+
+\findex{qr}
+另外一个密切相关的函数是 \code{qr()} 及其相关函数。
+注意下面的赋值情况
+
+\begin{example}
+> Xplus <- qr(X)
+> b <- qr.coef(Xplus, y)
+> fit <- qr.fitted(Xplus, y)
+> res <- qr.resid(Xplus, y)
+\end{example}
+
+\noindent
+这些将会计算 \code{y} 在 \code{fit} 的
+\code{X} 上的正交投影，在 \code{res} 正交补空间上的投影
+以及在 \code{b} 投影上的系数向量。
+本质上而言，\code{b} 和 \sm{Matlab}
+`反斜线'操作符的结果是一致的。
+
+这里没有要求 \code{X} 有完整的列秩，因此
+可能出现冗余。如果出现，就会被自动去掉。
+
+这里提到的方法是原始的底层实现的最小二乘法计算。
+尽管在一些情况下仍然有效，但是
+它现在已经被统计模型特征分析的办法所替换，这些内容
+将会在 \hlink{Statistical models in R}{\R{}相关的统计模型} 中讨论。
+
+
+\section{用 \code{cbind()} 和 \code{rbind()} 构建分块矩阵}
+\hlabel{Forming partitioned matrices}
+\findex{cbind}
+\findex{rbind}
+
+正如前面所暗示的，可以利用函数
+\code{cbind()} 和 \code{rbind()} 把向量和矩阵拼成一个新的矩阵。
+概略地说，\code{cbind()} 把矩阵横向合并成一个大矩阵（列方式），
+而 \code{rbind()} 是纵向合并（行方式）。
+
+在命令中
+
+\examp{
+> X <- cbind(\var{arg\_1}, \var{arg\_2}, \var{arg\_3}, \dots{})
+}
+
+\noindent
+\code{cbind()} 的参数要么是任何长度的向量，要么是列长度一致的
+的矩阵（即行数一样）。
+结果将是一个合并 \var{arg_1},
+\var{arg_2}, \dots{} 的列形成的矩阵。
+
+如果 \code{cbind()} 的参数中有一些比其他矩阵参数的列长度短
+的向量，它们将会被
+循环使用以吻合矩阵的列长度(在没有矩阵的情况下，
+吻合其中最长向量的长度)。
+
+函数 \code{rbind()} 对行进行类似的操作。
+其中任何向量参数都会被当作行向量且
+可能被循环使用。
+
+假定 \code{X1} 和 \code{X2} 有一样的行数。下面的命令
+会把它们的列合并以得到矩阵 \code{X}，同时要求起始列
+都是 \code{1}
+
+\begin{example}
+> X <- cbind(1, X1, X2)
+\end{example}
+
+\code{rbind()} 或者 \code{cbind()} 返回值常常是矩阵形式。
+因此， \code{cbind(x)} 和 \code{rbind(x)} 可能是
+把向量 \code{x} 分别转换成列或者行矩阵
+最简单的方法。
+
+\section{对数组实现连接操作的函数\code{c()}}
+\hlabel{The concatenation function c() with arrays}
+
+需要注意的是，\code{cbind()} 和 \code{rbind()} 是
+考虑 \code{dim} 特性的连接函数，而函数
+\code{c()} 则不考虑这些数值对象的
+\code{dim} 和 \code{dimnames} 属性。这一点在有些时候
+非常有用。
+
+将一个数组强制转换成简单向量的标准方法是用函数
+\code{as.vector()}。
+
+\begin{example}
+> vec <- as.vector(X)
+\end{example}
+\findex{as.vector}
+
+一个相似效果的办法是采用单参数的 \code{c()}函数，
+就像下面：
+
+\begin{example}
+> vec <- c(X)
+\end{example}
+\findex{c}
+
+这两种方法有少许不同，到底采用那种方式
+关键是看对结果向量的格式要求(建议使用
+前者)。
+
+\section{因子的频率表}
+\hlabel{Frequency tables from factors}
+\cindex{制表}
+
+单个因子会把各部分数据分成不同的组。类似的是，
+一对因子可以实现交叉分组等。
+\findex{table}
+函数 \code{table()} 可以从等长的不同因子中计算出频率表。
+如果有 \rmath{k} 个因子参数，
+那么结果将是一个\rmath{k}-维的频率分布数组。
+
+假定 \code{statef} 是一个设定
+数据向量元素个体所在州的因子，那么下面的赋值
+
+\begin{example}
+> statefr <- table(statef)
+\end{example}
+
+\noindent
+将会把一个样本中各种状态的频率分布表赋给 \code{statefr}。
+这些频率会被排序且以因子的水平特性标记。等价但
+有点烦琐实现方式如下
+
+\begin{example}
+> statefr <- tapply(statef, statef, length)
+\end{example}
+
+进一步假设 \code{incomef} 是一个
+按适当定义的``收入阶层''对数据向量元素进行分类的因子。
+它可以用函数 \code{cut()} 定义：
+
+\begin{example}
+> factor(cut(incomes, breaks = 35+10*(0:7))) -> incomef
+\end{example}
+\findex{cut}
+
+然后计算频率的二维表：
+
+\begin{example}
+> table(incomef,statef)
+         statef
+incomef   act nsw nt qld sa tas vic wa
+  (35,45]   1   1  0   1  0   0   1  0
+  (45,55]   1   1  1   1  2   0   1  3
+  (55,65]   0   3  1   3  2   2   2  1
+  (65,75]   0   1  0   0  0   0   1  0
+\end{example}
+
+同样的方法也可以得到高维的频率分布表。

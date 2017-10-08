@@ -1,0 +1,393 @@
+\chapter{绪论}
+\hlabel{Introduction and preliminaries}
+
+\section{R 环境}
+\hlabel{The R environment}
+
+~\R{} 环境由一组数据操作，计算和图形展示的工具构成。
+相对其他同类软件，
+它的特色在于：
+
+\begin{itemize}
+\item
+有效的数据处理和保存机制，
+\item
+完整的数组和矩阵计算操作符，
+\item
+连贯而又完整的数据分析工具，
+\item
+图形工具可以对数据直接进行分析和展示，同时可用于
+多种图形设备，
+\item
+它是一种相当完善，简洁而又高效的程序设计语言 (也就是 `S')。
+它包括条件语句，循环语句，用户定义的递归函数以及各种输入输出接口。
+（实际上，系统提供的大多数
+函数都是用 ~\sm{S} 写的）。
+\end{itemize}
+
+在这里, 术语 ``环境''（environment）是想表明~\R{}是一种经过
+充分设计并且结构统一的系统，而不是一个功能非常专一, 难以扩充的工具群。但这
+种情况, 在其他的数据分析软件里面常常会遇到。
+
+~\R{} 是开发新的交互式数据分析方法一个非常好的工具。
+它的开发周期短，有大量的扩展\emph{包}（packages）
+可以使用。不过，大多数用 ~\R{} 开发的程序
+仅仅是为了处理一些特定的数据，因此很快
+就被淘汰了。
+
+\section{相关软件和文档}
+\hlabel{Related software and documentation}
+~\R{} 可以看作是贝尔实验室（Bell Laboratories）的 Rick Becker，
+John Chambers 和 Allan Wilks 开发的 ~\sm{S} 语言的一种实现。
+当然，~\sm{S} 语言也是 \sm{SPLUS} 的基础。
+
+关于 ~\sm{S} 语言的发展过程可以参考John Chambers 及其
+合著者们编写的四本书。对于 ~\R{}，最主要的参考书是
+Richard A.~Becker，John M.~Chambers 和 Allan R.~Wilks 著的 \emph{The
+New ~\sm{S} Language: A Programming Environment for Data Analysis and
+Graphics}。另外，John M.~Chambers and Trevor J.~Hastie 
+编的 \emph{Statistical Models in ~\sm{S}} 覆盖了
+1991 发布的 ~\sm{S} 3 版本\footnote{译者注:~John M.~Chambers 提议1988发布的版本称为 S3。} 的一些新特征。
+\pkg{methods} 包中的方法（method）和类（class） 就是基于 John M.~Chambers 著的
+\emph{Programming with Data}。
+具体参考书目见附录中的\hlink{References}{参考文献}部分.
+
+现在已经有很多关于如何用 ~\R{} 进行数据分析和统计的书籍。
+~\sm{S}/\sm{SPLUS}方面的文档都可以直接用于~\R{}，不过
+要注意 ~\R{} 在 ~\sm{S} 实现上的差异。
+参见~\R{} 的常见问题集：
+\href{R-faq_cn.pdf}{R 常见问题集}。
+
+\section{R 和统计}
+\hlabel{R and statistics}
+\cindex{包}
+
+我们对 ~\R{} 环境的介绍中没有提到
+\emph{统计}，但是大多数人用 ~\R{} 就是因为它的统计功能。
+不过，我们宁可把 ~\R{} 当作一个内部实现了许多经典的时髦的
+统计技术的环境。部分的统计功能是整合在
+~\R{} 环境的底层，但是大多数功能则以 \emph{包} 的形式提供。
+大约有25个包和 ~\R{} 同时发布（被称为``标准'' 和 ``推荐''
+包），更多的包可以通过网上或其他地方的
+\emph{CRAN} 社区 (\url{http://CRAN.R-project.org})
+得到。关于包更多的细节
+将在后面的章节叙述 (见\hlink{Packages}{包}一章)。
+
+大多数经典的统计方法和最新的技术都可以
+在 ~\R{} 中直接得到。终端用户只是需要
+花点精力去找到一下就可以了。
+
+~\sm{S}(也包括 ~\R{}) 和其他主要的统计系统在观念上
+有着重要的差异。在 ~\sm{S}语言中，一次统计分析
+常常被分解成一系列步骤，并且所有的中间结果都被保存在
+对象（object）中。因此，SAS 和 SPSS 为回归和
+判别分析提供了丰富的屏幕输出内容，但 ~\R{} 给出
+屏幕输出却很少。它将结果保存在一些合适的对象中
+以便于用 ~\R{} 里面的函数做进一步的分析\footnote{译者注: 这点在~\R{}编程里面非常的重要.}。
+
+\section{R 和桌面系统}
+
+最容易的方法就是在一个桌面系统的图形工作站（graphics workstation）上
+运行 ~\R{}。当然这主要是对有这种便利的读者说的。
+大多数情况下我们不会特指在
+什么 ~\R{} 环境下使用 ~\R{}，
+但我们偶尔会提到在 X window 系统上使用 ~\R{}。
+
+大多数用户都会觉得有必要和计算机系统进行直接交流.
+在本手册中,
+我们主要讨论在 UNIX 操作系统中的交互式操作。
+如果你在 Windows 或者 MacOS 上运行 ~\R{} ，你可能
+需要做少量的调整。
+
+为充分利用 ~\R{} 的个性化配置，直接设置图形工作站是
+最直接的办法。不过，这种方法有点乏味。我们不准备讨论这个问题。
+用户如果遇到这方面的问题
+可以向你身边高手寻求帮助。
+
+\section{交互式使用 ~\R{}}
+\hlabel{Using R interactively}
+
+当一个 ~\R{} 程序需要你输入命令时，它会显示命令提示符。 
+默认的提示符是 \code{>}。UNIX 系统中可能会
+和 shell 的命令提示符一致。它还表明当前环境没有任务运行。
+但是，正如我们所期望的一样，你很容易设定你想要的
+不同于默认值的 ~\R{} 命令提示符。在接下来的文档中，我们将假定 UNIX
+的 shell 命令的提示符是 \code{\$}。
+
+如果你是第一次在 UNIX 系统使用 ~\R{}，我们推荐的操作步骤
+如下：
+
+\begin{enumerate}
+\item
+创建一个独立的子目录 \file{work} 来保存你要在这个系统上
+用 ~\R{} 分析的数据文件。当你用 ~\R{} 处理这些数据时，
+这将是你的工作目录。
+
+\begin{example}
+$ mkdir work
+$ cd work
+\end{example}
+
+\item
+用命令启动 ~\R{} 程序。
+
+\begin{example}
+$ R
+\end{example}
+
+\item
+此时，可以键入 ~\R{} 的命令 (见后面的内容)。
+
+\item
+退出 ~\R{} 程序的命令是
+
+\begin{example}
+> q()
+\end{example}
+
+这个时候，~\R{} 会话会问你是否需要保存数据。
+有些系统会弹出一个会话框，还有一些系统则
+会给出文本命令提示。对于文本命令提示，你可以键入
+\kbd{yes}，\kbd{no}, \kbd{cancel} 或者它们的首字母
+以表示在退出前保存数据，不保存数据就退出，和重新返回
+~\R{} 会话。被保存的数据可以将来被 ~\R{}
+会话重新调用。
+
+\end{enumerate}
+
+随后的 ~\R{} 会话是比较容易的。
+
+\begin{enumerate}
+
+\item
+创建工作目录 \file{work}，和前面一样的步骤启动程序：
+
+\begin{example}
+$ cd work
+$ R
+\end{example}
+
+\item
+使用 ~\R{} 程序，用 \code{q()} 命令结束
+会话。
+
+\end{enumerate}
+
+在 Windows 系统使用 ~\R{} 的操作流程在本质上是一样的。创建一个工作目录，
+将该目录设置为 ~\R{} 桌面快捷方式的\file{起始位置}\footnote{译者注：右键点击 ~\R{} 桌面快捷方式，出现一个菜单，选择``属性''，弹出会话框，点击
+\file{``快捷方式''}，就可以看到\file{``起始位置''}。填上你所创建的工作目录，就OK\^{}\_\^{}）}
+，双击快捷图标以启动 ~\R{}。
+
+\section{一个引导性的~\R{} 会话}
+
+如果读者现在极力想在自己的电脑上体验一下 ~\R{} 的魅力，
+那就迅速把附录 \hlink{A sample session}{一个简单会话} 中给出的
+引导性 ~\R{} 会话做完。这个示意性的 ~\R{} 会话非常值得推荐。
+
+\section{通过函数和特征寻求帮助}
+\findex{help}
+
+~\R{} 有一个和UNIX的帮助命令 \code{man} 类似的内嵌帮助工具。
+为了得到任何特定名字的函数的帮助，如
+\code{solve}，可以使用如下命令
+
+\begin{example}
+> help(solve)
+\end{example}
+\findex{help}
+
+另外一种办法是
+
+\begin{example}
+> ?solve
+\end{example}
+\findex{?}
+
+对于有特殊含义的字符，可以加上
+双引号或者单引号，即``字符串''：
+这同样适用于有语法涵义的关键字
+\code{if}，\code{for} 和 \code{function}。
+
+\begin{example}
+> help("[[")
+\end{example}
+
+任何一种引号都可用于逃逸（escape）另外一种，如
+字符串 \code{"It's important"}\footnote{译者注：如果采用 \code{'It's important'}，~\R{} 就会告诉你语法错误！}。
+习惯上，一般优先使用双引号。
+
+在大多数 ~\R{} 平台中，你可以通过运行下面的命令得到
+\HTML{} 格式的帮助。 
+
+\begin{example}
+> help.start()
+\end{example}
+\findex{help.start}
+
+\noindent
+它会启动一个网页浏览器，允许你通过超链访问
+帮助页。在 UNIX系统中，后续的帮助要求可以发送给
+基于 \HTML{} 的帮助系统。在 \code{help.start()} 启动的浏览页上，
+`搜索引擎和关键词'（Search Engine \& Keywords ）链接特别有用，因为
+它通过搜索可以使用的函数而提供一个高层次的概念列表。
+这会让你很快认清自己所处的位置和理解
+~\R{} 所提供的函数能力范围。
+
+\findex{help.search}
+\code{help.search} 命令\footnote{译者注：我非常喜欢这个命令，除\code{?}外它可能是我用的最多的一个}
+允许你用任何方式搜索帮助文档：
+键入 \code{?help.search} 看一下这个命令的详细信息和例子。
+
+关于某个帮助主题的例子，可以用下面的命令查看。
+
+\examp{
+> example(\var{topic}) \# topic 是你要想测试的命令，如barplot
+}
+\findex{example}
+
+Windows 版本的 ~\R{} 还有其他可选的帮助工具：
+你可以利用下面的命令得
+到更多的信息\footnote{译者注: BioConductor项目还提供名为~Vignettes 的帮助工具.}。
+
+\begin{example}
+> ?help
+\end{example}
+
+\section{R 命令，大小写敏感等}
+
+技术上来说，~\R{} 是一种语法非常简单的\emph{表达式语言}（expression language）。
+它\emph{大小写敏感}，因此
+\code{A} 和 \code{a} 是不同的符号且指向
+不同的变量。可以在 ~\R{} 环境下使用的命名字符集
+依赖于 ~\R{} 所运行的系统和国家
+(就是系统的 \emph{locale} 设置)。通常，数字，字母
+，\samp{\code{.}} 和 \samp{\code{\_}}都是允许的(在一些国家还包括重音
+字母)。不过，一个命名必须以
+\samp{\code{.}} 或者字母开头，并且
+以 \samp{\code{.}} 开头时第二个字符不允许是数字。
+
+基本命令要么是\emph{表达式}（expressions）要么就是
+\emph{赋值}（assignments）。如果一条命令是表达式，那么它将会
+被解析（evaluate），并将结果显示在屏幕上，同时清空该命令所占内存。
+赋值同样会解析表达式并且把值传给变量但结果
+不会自动显示在屏幕上。
+
+命令可以被 (\samp{\code{;}})隔开，或者
+另起一行。基本命令可以通过大括弧(\samp{\code{\{}}和\samp{\code{\}}})
+放在一起构成一个复合表达式（compound expression）。
+\emph{注释}几乎可以放在任何地方\footnote{\strong{不要}放在字符串之中，
+也不要放在一个函数定义的参数列表中}。
+一行中，从井号(\samp{\code{\#}})开始到句子收尾之间的语句
+就是注释。
+
+如果一条命令在一行结束的时候在语法上还不完整，~\R{} 会
+给出一个不同的提示符，默认是
+
+\begin{example}
++
+\end{example}
+
+\noindent
+该提示符会出现在第二行和随后的行中，它持续等待输入直到
+一条命令在语法上是完整的。该提示符可以被用户修改。
+在后面的文档中，我们常常省略延续提示符（continuation prompt）
+，以简单的缩进表示这种延续。
+
+\section{重新调用和修正先前的命令}
+
+在大多数 UNIX 版本和 Windows 系统上，~\R{} 提供了一种
+调用和重新执行先前用过的命令的机制。键盘的上下键
+可以使光标在\emph{命令的历史记录}（command history）中前翻或者
+后退。一旦找到某条具体的命令，光标可以通过
+左右键移动，而且
+可以插入其他字符或者用\key{DEL}键删除字符。
+更具体的内容可以参考附录 \hlink{The command-line editor}{命令行编辑器}.
+
+UNIX 下面对以前用过命令的调用和编辑的键设置是可以修改的，
+具体内容可以参考\strong{readline} 库的指南。
+
+特别提一下，Emacs 文本编辑器\footnote{译者注：当然Vi，UltraEdit也不错。我就用UltraEdit写 ~\R{} 代码做蒙特卡罗模拟的。
+在\url{http://www.ultraedit.com/index.php?name=Content&pa=showpage&pid=40}下载 ~\R{} 的 wordfile
+（``R Scripting - 02/18/2003''，具体可能会有些不同），贴到你的 UltraEdit 程序根目录下的 wordfile.txt 文件中就行了。这时候，自动会对 .R 文件语法高亮显示。}
+对交互使用 ~\R{} 提供了更一般的机制 (主要是 \emph{ESS} 和 \emph{Emacs Speaks Statistics})。具体可以参见R的问题集: \href{R-faq_cn.pdf}{R 常见问题集}。
+
+\section{批处理文件和结果重定向}
+\cindex{定向输入和输出}
+
+如果一批命令保存在工作目录 \file{work} 下一个叫 \file{commands.R} 的文件中，
+可以用下面的命令在
+~\R{} 会话中执行这个文件。
+
+\begin{example}
+> source("commands.R")
+\end{example}
+\findex{source}
+
+在 Windows 版本的 ~\R{} 控制台中， 可以在\strong{文件}（File）菜单中
+选择\strong{载入}（Source）来实现。对于函数 \code{sink}，下面的命令
+
+\begin{example}
+> sink("record.lis")
+\end{example}
+\findex{sink}
+
+\noindent
+可以把所有后续的输出结果从控制台重定向到外部文件\footnote{译者注：此时，控制台可以看见
+你输入的命令，但是看不见输出结果。因为结果都定向到外部文件中去了。} \file{record.lis} 中。命令
+
+\begin{example}
+> sink()
+\end{example}
+
+\noindent
+让你输出流重新定向到控制台。
+
+\section{永久数据和对象删除}
+
+~\R{} 创建和控制的实体（entity）被称为
+\emph{对象}。它们可以是变量，数组，字符串，
+函数，或者其他通过这些实体定义的
+更为一般性的结构（structures）。
+
+在 ~\R{} 会话过程中，对象是通过名字创建和保存的(我们将在后面的
+话题中讨论这个过程)。~\R{} 的命令(或者\code{ls()})
+
+\begin{example}
+> objects()
+\end{example}
+
+\noindent
+是用来显示当前 
+保存在 ~\R{} 环境中的对象名字（可能不是全部名字）。
+保存当前对象的地方被称为\emph{工作空间}（workspace）。
+\cindex{工作空间}
+
+可以通过命令 \code{rm} 删除对象：
+
+\begin{example}
+> rm(x, y, z, ink, junk, temp, foo, bar)
+\end{example}
+\findex{rm}
+\cindex{删除对象}
+
+~\R{} 会话中创建的所有对象可以永久地保存在一个文件中
+以便于以后的 ~\R{} 会话调用。在每一次 ~\R{} 会话结束的时候，
+你可以保存当前所有可用的对象。
+如果你想这样做，这些对象将会
+写入当前目录下一个叫 \file{.RData}\footnote{文件名起始的``点'' 
+可能会让文件在常规的 UNIX 文件列表中\emph{不可见}，即隐藏文件。}
+的文件中，并且所有在这次会话中用过的命令行
+都会被保存在一个叫 \file{.Rhistory} 的文件中。
+
+当 ~\R{} 再次在同一目录下启动，这些对象将从这个文件中
+重新导入工作空间。同时，相关的历史命令文件也会
+被导入。
+
+如果采用 ~\R{} 做分析，你最好用相对独立的工作目录。
+在分析过程中，将对象命名为
+\code{x} 和 \code{y} 是一件非常常见的事情。在一次独立的分析中，
+这样的命名是有特定含义的，但若几个分析同时在一个目录
+下进行时，区别它们的涵义
+可能是一件非常困难的事情。  
+
+\endinput%

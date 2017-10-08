@@ -1,0 +1,212 @@
+%save pageref an label
+\let\lsspageref\pageref
+\ProvidesPackage{RTranslationCN}
+\RequirePackage[english]{babel}
+\RequirePackage{verbatim}
+\RequirePackage{fancyhea}
+\RequirePackage{calc}
+\RequirePackage{amsmath}
+
+\RequirePackage{color,verbatim}
+% 
+% Lets have some nice headings
+%
+\pagestyle{fancyplain}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection{} #1}}
+\lhead[\fancyplain{}{\bfseries\thepage}]
+    {\fancyplain{}{\bfseries\rightmark}}
+\rhead[\fancyplain{}{\bfseries\leftmark}]
+    {\fancyplain{}{\bfseries\thepage}}
+\cfoot[]{}
+\addtolength{\headheight}{1.6pt}
+%
+%
+% Earlier paragraphs were separated by some space
+%
+%\setlength{\parindent}{0pt}
+%\setlength{\parskip}{1.5ex plus 0.7ex minus 0.6ex}
+
+\newcommand{\manual}{\emph{\LaTeX{} Manual}~\cite{manual}} 
+\newcommand{\companion}{\emph{The \LaTeX{} Companion}~\cite{companion}} 
+\newcommand{\guide}{\emph{Local Guide}~\cite{local}}
+\newcommand{\contrib}[3]{#1\quad\texttt{<#2>}{\small\\\quad\textit{#3}}\\[1ex]}
+%
+% Some commands for helping with INDEX creation
+%
+\newcommand{\bs}{\symbol{'134}}%Print backslash
+%\newcommand{\bs}{\ensuremath{\mathtt{\backslash}}}%Print backslash
+% Index entry for a command (\cih for hidden command index
+\newcommand{\cih}[1]{%
+\index{commands!#1@\texttt{\bs#1}}%
+\index{#1@\texttt{\hspace*{-1.2ex}\bs #1}}}
+\newcommand{\ci}[1]{\cih{#1}\texttt{\bs#1}}
+%Package
+\newcommand{\pai}[1]{%
+\index{packages!#1@\textsf{#1}}%
+\index{#1@\textsf{#1}}%
+\textsf{#1}}
+% Index entry for an environment
+\newcommand{\ei}[1]{%
+\index{environments!\texttt{#1}}%
+\index{#1@\texttt{#1}}%
+\texttt{#1}}
+% Indexentry for a word (Word inserted into the text)
+\newcommand{\wi}[1]{\index{#1}#1}
+%
+% Typesetting Commands
+%
+\newenvironment{lscommand}%
+    {\nopagebreak\par\small\addvspace{3.2ex plus 0.8ex minus 0.2ex}%
+     \vskip -\parskip
+     \noindent%
+     \begin{tabular}{|l|}\hline\rule{0pt}{1em}\ignorespaces}%
+    {\\\hline\end{tabular}\par\nopagebreak\addvspace{3.2ex plus 0.8ex
+        minus 0.2ex}%
+     \vskip -\parskip}
+%
+% Type setting Code Fragments
+%
+
+%
+% Intro Environment
+\newenvironment{intro}{\sffamily}{\vspace*{2ex minus 1.5ex}}
+
+%
+%
+% Symbol Entry for Math Symbol Tables
+%
+\newcommand{\X}[1]{$#1$&\texttt{\string#1}\hspace*{1ex}}
+% normal text .... 
+\newcommand{\SC}[1]{#1&\texttt{\string#1}\hspace*{1ex}}
+% for accents in text mode
+\newcommand{\A}[1]{#1&\texttt{\string#1}\hspace*{1ex}}
+\newcommand{\B}[2]{#1#2&\texttt{\string#1{} #2}\hspace*{1ex}}
+
+\newcommand{\W}[2]{$#1{#2}$&
+  \texttt{\string#1}\texttt{\string{\string#2\string}}\hspace*{1ex}}
+\newcommand{\Y}[1]{$\big#1$ &\texttt{\string#1}}  %
+% Mathsymbol Table
+\newsavebox{\symbbox}
+\newenvironment{symbols}[1]%
+{\par\vspace*{2ex}
+\renewcommand{\arraystretch}{1.1}
+\begin{lrbox}{\symbbox}
+\hspace*{4ex}\begin{tabular}{@{}#1@{}}}%
+{\end{tabular}\end{lrbox}\makebox[\textwidth]{\usebox{\symbbox}}\par\medskip}
+%
+% Special Prep for AMS Symbols Printout
+% Should work if AMS is not available
+%
+
+% we have no PS versions of the rsfs fonts ... so this is a nogo for pdf
+\ifx\pdfoutput\undefined % We're not running pdftex
+\IfFileExists{mathrsfs.sty}
+  {\RequirePackage{mathrsfs}\let\MathRSFS\mathscr\let\mathscr\relax}{}
+\fi
+\IfFileExists{amssymb.sty}
+  {\let\noAMS\relax \RequirePackage{amssymb}}
+  {\def\noAMS{\endinput}\RequirePackage{latexsym}}
+\IfFileExists{eucal.sty}
+  {\RequirePackage[mathscr]{eucal}}
+  {\IfFileExists{euscript.sty}
+  {\RequirePackage{euscript}}{}}
+%\IfFileExists{eufrak.sty}
+%  {\RequirePackage{eufrak}}{}
+\IfFileExists{amsbsy.sty}
+  {\RequirePackage{amsbsy}}{}
+
+
+%
+% Print |--| to show a distance
+%
+\newcommand{\demowidth}[1]{\rule{0.3pt}{1.3ex}\rule{#1}{0.3pt}\rule{0.3pt}{1.3ex}}
+  
+
+\newenvironment{lined}[1]%
+ {\begin{center}\begin{minipage}{#1}\hrule\medskip}
+ {\vspace{-1ex}\hrule \end{minipage}\end{center}}
+% I want no headers on pages created by clearpage
+
+\renewcommand{\cleardoublepage}
+    {\clearpage\if@twoside \ifodd\c@page\else
+    \hbox{}\thispagestyle{empty}\newpage\if@twocolumn\hbox{}\newpage\fi\fi\fi}
+
+
+% defined by Guohui Ding
+%
+%
+% --- example ----
+% This is an environment to set LaTeX examples.
+% On the left side the source text and on the
+% right side the typeset text.
+%
+% \begin{example}
+% \Large This is Large
+% \end{example}
+%
+%
+\definecolor{example@bkcolor}{gray}{.875}
+%
+\newwrite\example@out
+\def\example@start{%
+  \begingroup% Lets Keep the Changes Local
+  \@bsphack
+  \immediate\openout \example@out \jobname.exa
+  \let\do\@makeother\dospecials\catcode`\^^M\active
+  \def\verbatim@processline{%
+    \immediate\write\example@out{\the\verbatim@line}}%
+  \verbatim@start}
+\def\example@finish{\immediate\closeout\example@out\@esphack\endgroup}
+\def\example@code#1#2{%
+  \colorbox{#1}{%
+    \begin{minipage}[c]{#2}%
+      \small\verbatiminput{\jobname.exa}%
+    \end{minipage}%
+  }%
+}
+\def\example@output#1{%
+  \let\savefboxrule\fboxrule%
+  \let\savefboxsep\fboxsep%
+  \setlength{\fboxrule}{0.1pt}%
+  \setlength{\fboxsep}{3mm}%
+  \fbox{%
+    \begin{minipage}[c]{#1}%
+      \setlength{\fboxrule}{\savefboxrule}%
+      \setlength{\fboxsep}{\savefboxsep}%
+      \setlength{\parskip}{1ex plus 0.4ex minus 0.2ex}%
+      \begin{trivlist}\item\small\input{\jobname.exa}\end{trivlist}
+    \end{minipage}
+  }%
+}
+\newenvironment{example}%
+  {\example@start}%
+  {\example@finish%
+   \list{}{\itemindent-\leftmargin}\item\relax%
+   \makebox[\textwidth][c]{%
+     \example@code{example@bkcolor}{0.96\textwidth}%
+   }%
+   \endlist}
+   
+% corresponding to the R mannual source.
+\newcommand{\key}[1] {\fbox{\textbf{#1}}}
+\newcommand{\R}{$\mathrm{R}$}
+\newcommand{\rs}{$\mathrm{R}$} % symbol of R
+\newcommand{\sm}[1]{$\mathrm{#1}$} % marker for R/S/S-PLUS
+\newcommand{\file}[1]{\textsf{#1}}
+\newcommand{\kbd}[1]{\textsf{\textit{#1}}}
+\newcommand{\HTML}{$\textbf{HTML}$}
+\newcommand{\samp}[1]{#1}
+\newcommand{\w}[1]{#1}
+\newcommand{\strong}[1]{\emph{#1}}
+\newcommand{\acronym}[1]{\sm{#1}}
+
+\newcommand{\rc}[1]{\texttt{#1}} %R Code
+\newcommand{\pkg}[1]{\textbf{#1}} %R package
+\newcommand{\code}[1]{\rc{#1}}
+\newcommand{\rmath}[1]{$#1$}
+\newcommand{\var}[1]{$\mathit{#1}$}
+\newcommand{\env}[1]{\texttt{#1}}
+
+\definecolor{exampcolor}{gray}{.875}
+\newcommand{\examp}[1]{\bigskip\noindent\texttt{\colorbox{exampcolor}{#1}}\bigskip}

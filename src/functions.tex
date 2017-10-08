@@ -1,0 +1,634 @@
+\chapter{编写函数}
+\hlabel{Writing your own functions}
+\cindex{编写函数}
+
+正如前面内容所暗示的一样，\R{} 语言允许用户
+创建自己的\emph{函数}（function）对象。\R{} 有一些
+内部函数可以用在其他的表达式中。通过这个过程，\R{} 在程序的功能性，
+便利性和优美性上得到了扩展。学写这些有用的函数
+是一个人轻松地创造性地使用 \R{} 的最主要的方式。
+
+需要强调的是，大多数函数都作为
+\R{} 系统的一部分而提供，如\code{mean()}, \code{var()},
+\code{postscript()} 等等。这些函数都是用 \R{} 写的，
+因此在本质上和用户写的没有差别。
+
+一个函数是通过下面的语句形式定义的，
+
+\examp{
+> name <- function(\var{arg\_1}, \var{arg\_2}, \ldots{}) \var{expression}
+}
+\findex{function}
+
+\noindent
+其中 \var{expression} 是一个 \R{} 表达式(常常是一个成组
+表达式)，它利用参数 \var{arg_i} 计算最终的结果。
+该表达式的值就是函数的返回值。
+
+可以在任何地方以
+\code{\var{name}(\var{expr_1}, \var{expr_2}, \dots{})} 的形式调用函数。
+
+\section{一个简单的例子}
+\hlabel{Simple examples}
+
+这是一个简单的例子，它用来计算双样本的
+\rmath{t}-统计量，并且显示``所有运算步骤''。这是一个人为的例子，
+当然还有其他更简单的办法得到一样的结果。
+
+函数定义如下：
+
+\begin{example}
+> twosam <- function(y1, y2) {
+    n1  <- length(y1); n2  <- length(y2)
+    yb1 <- mean(y1);   yb2 <- mean(y2)
+    s1  <- var(y1);    s2  <- var(y2)
+    s <- ((n1-1)*s1 + (n2-1)*s2)/(n1+n2-2)
+    tst <- (yb1 - yb2)/sqrt(s*(1/n1 + 1/n2))
+    tst
+  }
+\end{example}
+
+通过这个函数，你可以利用下面的命令
+实现双样本 \rmath{t}-检验：
+
+\begin{example}
+> tstat <- twosam(data$male, data$female); tstat
+\end{example}
+
+第二个例子是仿效
+\sm{Matlab} 里面的反斜杠命令。它是用来返回向量 \rmath{y}
+正交投影到 \rmath{X} 列空间上面的系数。
+(这常常被称为回归系数的
+最小二乘法估计。) 这可以用
+函数 \code{qr()} 来实现；但是直接使用这个函数有时需要一点技巧。
+下面提供了一个简单而又安全的函数。
+
+给定一个 \rmath{n} × \rmath{1} 的向量 \rmath{y} 和一个 \rmath{n} ×
+\rmath{p} 的矩阵 \rmath{X}，因此 \rmath{X \backslash y} 可以定义如下
+$(X'X)^{-}X'y$, 其中 $(X'X)^{-}$
+这就是 \rmath{X'X}的广义逆矩阵（generalized inverse）。
+
+\begin{example}
+> bslash <- function(X, y) {
+  X <- qr(X)
+  qr.coef(X, y)
+}
+\end{example}
+
+当这个对象创建后，它可用于这样的命令中：
+
+\begin{example}
+> regcoeff <- bslash(Xmat, yvar)
+\end{example}
+
+\noindent
+
+
+经典的 \R{} 函数 \code{lsfit()} 可以很快地完成这个功能和做其他一些相关
+的事情\footnote{参见 \hlink{Statistical models
+in R}{\R{}中的统计模型} 中描述的方法}。它以一种有点有悖直觉的方式
+依次用函数 \code{qr()} 和 \code{qr.coef()}去完成这部分计算。
+如果一部分代码常常被使用，我们可以把这部分代码单独列出来成为函数
+使用。如果是这样考虑，我们可能期望矩阵的二元操作（binary operator）
+能以一种更为便利的方式进行。
+
+\section{定义新的二元操作符}
+\hlabel{Defining new binary operators}
+\cindex{二元操作符}
+
+假定我们给予函数 \code{bslash()} 一个不同的名字，且以
+下面的形式给出
+
+\examp{
+\%\var{anything}\%
+}
+
+\noindent
+那么它将以\emph{二元操作符}（binary operator）的形式在表达式中使用，
+而不是函数的形式。例如我们用 \code{!}
+作为中间的字符。函数可以如下定义
+
+\begin{example}
+> "%!%" <- function(X, y) { ... }
+\end{example}
+
+\noindent
+(注意要使用引号)。该函数然后就可以以
+\code{X \%!\% y}的形式使用了。(两个百分号中间的字符最好不要用反斜杠符，
+因为在某些情况下会引入一些特别的问题。)
+
+矩阵的乘法操作符 \code{\%*\%} 和外积操作符
+\code{\%o\%} 同样是这种方式定义的
+二元操作符。
+
+\section{参数命名和默认值}
+\hlabel{Named arguments and defaults}
+\cindex{参数命名}
+\cindex{默认值}
+
+和 \hlink{Generating regular sequences}{产生正则序列}中提示的一样，如果被调用函数的参数
+以~``\code{\var{name}=\var{object}}'' 方式给出，
+它们可以用任何顺序设置。但是，参数赋值序列可能以
+未命名的，位置特异性的方式给出，同时也有可能
+在这些位置特异性的参数后加上命名参数赋值。
+
+因此，如果有下面方式定义的函数 \code{fun1}
+
+\begin{example}
+> fun1 <- function(data, data.frame, graph, limit) {
+    [函数主体部分忽略]
+  }
+\end{example}
+
+\noindent
+那么函数将会被好几种方式调用，如
+
+\begin{example}
+> ans <- fun1(d, df, TRUE, 20)
+> ans <- fun1(d, df, graph=TRUE, limit=20)
+> ans <- fun1(data=d, limit=20, graph=TRUE, data.frame=df)
+\end{example}
+
+\noindent
+上面所有的方式是等价的。
+
+许多时候，参数会被设定一些默认值。
+如果默认值适合你要做的事情，你可以省略这些参数。
+例如，函数 \code{fun1} 用下面的方式
+定义时
+
+\begin{example}
+> fun1 <- function(data, data.frame, graph=TRUE, limit=20) { ... }
+\end{example}
+
+\noindent
+它可以被如下命令调用
+
+\begin{example}
+> ans <- fun1(d, df)
+\end{example}
+
+\noindent
+这和前面三种情况等价，而
+
+\begin{example}
+> ans <- fun1(d, df, limit=10)
+\end{example}
+
+\noindent
+就改变了一个默认值。
+
+特别说明一下，默认值可以是任何表达式，甚至是函数本身
+所带有其他参数；它们没有要求
+是常数。我们的例子采用常数只是使问题简单容易说明。
+
+\section{\samp{\dots{}} 参数}
+\hlabel{The ellipsis argument (...)}
+
+还有一种常常出现的情况就是要求一个函数的参数设置
+可以传递给另外一个函数。例如许多图形函数通过调用函数 \code{par()} 
+和其他类似 \code{plot()} 的函数传递图形参数给
+\code{par()} 函数以控制图形输出。
+(后面的\hlink{The par() function}{\code{par()}函数} 章节会给出函数
+\code{par()} 更为详细的内容。)这个可以通过给函数
+增加一个额外的参数来实现。这个参数字面上就是
+\samp{\dots{}}，它可以被传递。
+一个概述性的例子可以如下所示。
+
+\begin{example}
+fun1 <- function(data, data.frame, graph=TRUE, limit=20, ...) {
+  [省略一些语句]
+  if (graph)
+    par(pch="*", ...)
+  [省略其他语句]
+}
+\end{example}
+
+\section{在函数中赋值}
+\hlabel{Assignment within functions}
+
+注意\emph{任何在函数内部的普通赋值都是局部的
+暂时的，当退出函数时都会丢失}。因此
+函数中的赋值语句 \code{X <- qr(X)} 不会影响
+调用该函数的程序赋值情况。
+
+如果要彻底理解 \R{} 赋值管理的原则，
+读者需要熟悉解析
+\emph{框架}（Evalution frame）的概念。这属于高级内容，
+不在这里深入讨论。
+
+如果想在一个函数里面全局赋值或者永久赋值，可以采用
+``强赋值''（superassignment）操作符 \code{<<-} 或者采用函数
+\code{assign()}。用\code{help}命令可以得到更具体的说明。
+\sm{SPLUS} 用户需要注意 \code{<<-} 在
+\R{} 里面有着不同的语义（semantics）。这些会在 \hlink{Scope}{变量作用范围}部分详细讨论。
+
+\section{更多高级的例子}
+\hlabel{More advanced examples}
+
+\subsection{区组设计中的效率因子}
+\hlabel{Efficiency factors in block designs}
+
+下面是一个有点枯燥但较为完整的例子。它是用来
+计算一个区组设计中的效率因子(这个问题的
+一些方面在 \hlink{Index
+arrays}{索引矩阵}中已经讨论过了)。
+
+区组设计（block design）需要考虑两个因子 \code{blocks} (\code{b}
+个水平) 和 \code{varieties} (\code{v} 个水平)。如果\rmath{R} 和
+\rmath{K} 分别是 \rmath{v} × \rmath{v} 和 \rmath{b} × \rmath{b}
+\emph{重复}（replications）及 \emph{区组大小}（block size）矩阵而
+\rmath{N} 则是 \rmath{b} × \rmath{v} 的关联矩阵（incidence matrix），
+那么效率因子就是这个矩阵的特征值，即
+$E = I_v - R^{-1/2}N'K^{-1}NR^{-1/2} = I_v - A'A,$
+其中 $A = K^{-1/2}NR^{-1/2}$。
+写这个函数的一种方式就是
+
+\begin{example}
+> bdeff <- function(blocks, varieties) {
+    blocks <- as.factor(blocks)             # minor safety move
+    b <- length(levels(blocks))
+    varieties <- as.factor(varieties)       # minor safety move
+    v <- length(levels(varieties))
+    K <- as.vector(table(blocks))           # 去掉 dim 属性
+    R <- as.vector(table(varieties))        # 去掉 dim 属性
+    N <- table(blocks, varieties)
+    A <- 1/sqrt(K) * N * rep(1/sqrt(R), rep(b, v))
+    sv <- svd(A)
+    list(eff=1 - sv$d^2, blockcv=sv$u, varietycv=sv$v)
+}
+\end{example}
+
+这种情况下，奇异值分解比求解特征值的数值计算效率高。
+
+函数的结果是一个列表。它不仅以第一个分量的形式给出了
+效率因子，还给出了区组和规范对照信息（block and variety canonical contrasts），
+因为有些时候这些会给出额外有用的定量信息。
+
+\subsection{去除打印数组中的名字}
+\hlabel{Dropping all names in a printed array}
+
+为了显示一个大的数组或者矩阵，常常需要
+需要以一个完整的块的形式显示，同时去掉数组名和编号。
+简单地去掉\code{dimnames} 属性是不能达到这个要求的，因为
+\R{} 环境会把空字符串赋给 \code{dimnames} 属性。
+为了打印一个矩阵 \code{X}
+
+\begin{example}
+> temp <- X
+> dimnames(temp) <- list(rep("", nrow(X)), rep("", ncol(X)))
+> temp; rm(temp)
+\end{example}
+
+这个可以非常容易地通过下面的函数
+\code{no.dimnames()} 实现。它是利用一种``卷绕''（wrap around）
+的方式实现的。这个例子还说明一些非常高效有用的用户函数
+可以是非常简洁的。
+
+\begin{example}
+no.dimnames <- function(a) {
+  ## 为了更紧凑的打印输出，可以去除数组中的维度名字
+  d <- list()
+  l <- 0
+  for(i in dim(a)) {
+    d[[l <- l + 1]] <- rep("", i)
+  }
+  dimnames(a) <- d
+  a
+}
+\end{example}
+
+通过这个函数，数组可以用一种紧凑的方式
+显示
+
+\begin{example}
+> no.dimnames(X)
+\end{example}
+
+这对大的整数数组非常有用，因为这些数组
+表现出来的式样（pattern）可能比它们的值更为重要。
+
+\subsection{递归式的数值积分}
+\hlabel{Recursive numerical integration}
+
+函数可以是递归的，可以在函数内部调用自己。
+但是需要注意的是，这些函数或者变量，
+不会被更高层次解析框架（evaluation frame）中的函数
+所继承，除非它们在搜索路径中\footnote{译者注：原文为``that such functions, or indeed variables,
+are not inherited by called functions in higher evaluation frames as they would be if they were on
+the search path.''}。
+
+下面的例子显示了一个最简单的一维数值积分方法。
+被积函数在所积范围的两端和中点的值会被计算。
+如果单面板梯形法则（one-panel trapezium rule）的结果和
+双面板(two panel) 的非常相似，那么就以后者结果作为返回值。
+否则同样的过程会递归用于各个面板。
+这是一个自适应的积分过程。它会集中各个远离线性曲线区域的
+被积函数计算值\footnote{译者注：原句为：``The result is an adaptive integration process
+that concentrates funtion evalutions in regions where the integrand is farthest from linear.''}。
+但是这种方法开销有点过大, 
+相对其他积分算法，它的优势仅体现在被积函数既平滑又很难求值时。
+
+这个例子同样可以部分的作为一个 \R{} 编程的难题给出。
+
+\begin{example}
+area <- function(f, a, b, eps = 1.0e-06, lim = 10) {
+  fun1 <- function(f, a, b, fa, fb, a0, eps, lim, fun) {
+    ## 函数~`fun1'仅仅在 `区域'中可见
+    d <- (a + b)/2
+    h <- (b - a)/4
+    fd <- f(d)
+    a1 <- h * (fa + fd)
+    a2 <- h * (fd + fb)
+    if(abs(a0 - a1 - a2) < eps || lim == 0)
+      return(a1 + a2)
+    else {
+      return(fun(f, a, d, fa, fd, a1, eps, lim - 1, fun) +
+             fun(f, d, b, fd, fb, a2, eps, lim - 1, fun))
+    }
+  }
+  fa <- f(a)
+  fb <- f(b)
+  a0 <- ((fa + fb) * (b - a))/2
+  fun1(f, a, b, fa, fb, a0, eps, lim, fun1)
+}
+\end{example}
+
+\section{作用域}
+\hlabel{Scope}
+\cindex{作用域}
+
+这一部分的内容相对本文档其他部分的内容更偏向一些技术性的问题。
+但是它会澄清 \sm{SPLUS} 和 \R{} 一些重要的差异。
+
+函数内部的变量可以分为三类：
+形式参数(formal parameters)，局部变量(local variables)和自由变量(free variables)。
+形式参数是出现在函数的参数列表中的变量。
+它们的值由实际的函数参数
+\emph{绑定}形式参数的过程决定的。
+局部变量由函数内部表达式的值决定的。
+既不是形式参数又不是局部变量的变量是
+自由变量。自由变量如果被赋值将会变成局部变量。观察下面的
+函数定义过程,
+
+\begin{example}
+f <- function(x) {
+  y <- 2*x
+  print(x)
+  print(y)
+  print(z)
+}
+\end{example}
+
+在这个函数中，\code{x} 是形式参数，\code{y} 是局部变量
+，\code{z} 是自由变量。
+
+在 \R{} 里面，可以利用函数被创建的环境中某个变量的第一次出现
+解析一个自由变量的绑定。这称为
+\emph{词法作用域}（lexical scope）。我们可以定义一个函数 \code{cube},
+
+\begin{example}
+cube <- function(n) {
+  sq <- function() n*n
+  n*sq()
+}
+\end{example}
+
+函数 \code{sq} 中的变量 \code{n} 不是函数的参数。
+因此它是自由变量。一些作用域的原则可以用来
+确定和它相关的值。在静态作用域
+(\sm{SPLUS})中，这个值指的是一个和全局变量
+\code{n} 相关的值。在词法作用域(\R{})中，它指的是函数
+\code{cube} 的参数。因为当 \code{sq} 定义的时候，
+它会动态绑定参数 \code{n}。
+在 \R{} 里面解析和在 \sm{SPLUS} 里面解析不同点在于 \sm{SPLUS} 搜索
+全局变量 \code{n} 而 \R{}
+首先寻找函数\code{cube}调用时所创建的环境中的变量 \code{n}。
+
+\begin{example}
+## 首先用 \sm{S} 解析
+S> cube(2)
+Error in sq(): Object "n" not found
+Dumped
+S> n <- 3
+S> cube(2)
+[1] 18
+## 同样的函数在 \R{} 中解析}
+R> cube(2)
+[1] 8
+\end{example}
+
+词汇作用域会给予函数\emph{可变状态}（mutable state）。
+下面的例子演示 \R{} 如何模仿一个银行的
+帐户。真正的银行帐户必须同时有跟踪收支平衡或者总额的变量，
+提供提款业务，取款业务和显示
+当前余额的函数。我们可以在 \code{account} 里面
+创建三个函数，然后返回一个包含它们的
+的列表。当调用 \code{account} 时，它读入一个数值参数
+\code{total}，并且返回一个包含三个函数的列表。
+因为这些函数时定义在一个有变量
+\code{total} 的环境中，它们可以访问它的值。
+
+\code{<<-} 是一个特别的赋值操作符，它用来
+\index{f}{\verb.<<-.}
+更改和 \code{total} 相关的值。这个操作符会回溯到
+一个含有标识符
+\code{total} 的密闭环境中。当它找到这个环境，
+它会用操作符右边的值替换环境中这个变量的值。
+如果在全局变量或者最高层次的环境中仍然没有找到标识符
+\code{total}，那么该变量就会被创建并且在那里被赋值。
+大多数用户用 \code{<<-} 创建全局变量，并且把操作符右边
+的值赋给它\footnote{从某种意义上来说，
+这样做有点模仿 \sm{SPLUS} 的用法，因为在 \sm{SPLUS} 中，这种操作符就是
+创建全局变量并且进行赋值操作。}。仅仅当 \code{<<-} 用于
+一个函数的输出是另外一个函数的输入时，
+这里描述的独特行为才会出现。
+
+\begin{example}
+open.account <- function(total) {
+  list(
+    deposit = function(amount) {
+      if(amount <= 0)
+        stop("Deposits must be positive!\n")
+      total <<- total + amount
+      cat(amount, "deposited.  Your balance is", total, "\n\n")
+    },
+    withdraw = function(amount) {
+      if(amount > total)
+        stop("You don't have that much money!\n")
+      total <<- total - amount
+      cat(amount, "withdrawn.  Your balance is", total, "\n\n")
+    },
+    balance = function() {
+      cat("Your balance is", total, "\n\n")
+    }
+  )
+}
+
+ross <- open.account(100)
+robert <- open.account(200)
+
+ross$withdraw(30)
+ross$balance()
+robert$balance()
+
+ross$deposit(50)
+ross$balance()
+ross$withdraw(500)
+\end{example}
+
+\section{定制环境}
+\hlabel{Customizing the environment}
+\cindex{定制环境}
+
+用户可以有好几种办法定制使用环境。可以修改
+位置初始化文件，并且每个目录都可以有它特有的一个
+初始化文件。还有就是利用函数
+\code{.First} 和 \code{.Last}。
+
+位置初始化文件的路径可以通过
+环境变量 \env{R\_PROFILE} 设置。如果该变量没有设置，
+默认是\R{}安装目录下面的子目录 \file{etc} 中的
+\file{Rprofile.site}。这个文件包括你每次执行
+\R{} 时一些自动运行的命令。第二个定制文件是
+\file{.Rprofile}\footnote{在
+UNIX 系统中，这种文件不可见。}，它可以放在任何目录下面。如果 \R{} 在该目录下面
+被调用，这个文件就会被载入。这个文件允许用户
+定制它们的工作空间，允许在不同的工作目录下
+设置不同的起始命令。如果在起始目录中没有 \file{.Rprofile}，
+\R{} 会在用户主目录\footnote{译者注：如~Linux 系统中的~\code{\~{}/}目录。}下面搜索
+\file{.Rprofile} 文件并且调用它 (如果它
+存在的话)。
+
+在这两个文件或者 \file{.RData} 中任何叫 \code{.First()} 的函数
+ 都有特定的状态。它会在
+\R{} 对话开始时自动执行并且初始化环境。
+下面例子中的定义允许
+将提示符改为 \code{\$}，以及设置其他有用的东西。
+这些设置同样会在其他会话中起作用。
+
+因此，这些文件的执行顺序是 \file{Rprofile.site}，
+\file{.Rprofile}，\file{.RData} 然后是 \code{.First()}。后面文件中
+定义会屏蔽掉前面文件中的定义。
+
+\begin{example}
+> .First <- function() {
+  options(prompt="$ ", continue="+\t")  # $ 是提示符
+  options(digits=5, length=999)         # 定制数值和输出格式
+  x11()                                 # 定制图形环境
+  par(pch = "+")                        # 定制数据点的标示符
+  source(file.path(Sys.getenv("HOME"), "R", "mystuff.R"))
+                                        # 个人编写的函数
+  library(MASS)                         # 导入包
+}
+\end{example}
+\findex{.First}
+
+类似的是，如果定义了函数 \code{.Last()}，它(常常)会在对话
+结束时执行。一个例子就是
+
+\begin{example}
+> .Last <- function() {
+  graphics.off()                        # 一个小的安全措施。
+  cat(paste(date(),"\nAdios\n"))        # 该吃午饭了？
+}
+\end{example}
+\findex{.Last}
+
+\section{类，泛型函数和面向对象}
+\hlabel{Object orientation}
+\cindex{类}
+\cindex{泛型函数}
+\cindex{面向对象}
+
+一个对象的类决定了它会如何被一个
+\emph{泛型}函数\footnote{译者注：\R{} 里面泛形函数和Java里面的
+\emph{接口}(interface)行为最像.早期, 我曾考虑用接口这个词来描述这个概念,
+但字面而言确实不妥. ``泛型函数''的概念借鉴了候捷的翻译术语.}处理。相反，一个泛型函数
+由\emph{参数自身类的种类}来决定完成特定工作或者事务的。
+如果参数缺乏任何类属性，
+或者在该问题中有一个不能被任何泛型函数处理的类，
+泛型函数会有一种\emph{默认的处理方式}。
+
+下面的一个例子使这个问题变得清晰。类机制为用户提供了为特定问题
+设计和编写泛型函数的便利。在众多泛型函数中，\code{plot()} 用于图形化显示
+对象，\code{summary()} 用于各种类型的概述分析，
+以及 \code{anova()} 用于比较统计模型。
+
+能以特定方式处理类的泛型函数的数目非常庞大。
+例如，可以在非常时髦的类对象
+\code{"data.frame"} 中使用的函数有
+
+\begin{example}
+[     [[<-    any    as.matrix
+[<-   mean    plot   summary
+\end{example}
+
+可以用函数 \code{methods()} 得到当前对某个类对象
+可用的泛型函数列表：
+
+\begin{example}
+> methods(class="data.frame")
+\end{example}
+
+相反，一个泛型函数可以处理的类同样很多。
+例如，\code{plot()} 有默认的方法和变量
+处理对象类 \code{"data.frame"}，
+\code{"density"}，\code{"factor"}，等等。一个完整的列表同样可以通过
+函数 \code{methods()} 得到：
+
+\begin{example}
+> methods(plot)
+\end{example}
+
+许多泛形函数的函数主体部分非常的短，如
+
+\begin{example}
+> coef
+function (object, ...)
+UseMethod("coef")
+\end{example}
+
+\noindent
+~\code{UseMethod} 的出现暗示着这是一个泛形函数。
+为了查看那些方法可以使用，我们可以使用函数 \code{methods()}
+
+\begin{example}
+> methods(coef)
+[1] coef.aov*         coef.Arima*       coef.default*     coef.listof*
+[5] coef.nls*         coef.summary.nls*
+
+   Non-visible functions are asterisked
+\end{example}
+
+\noindent
+这个例子中有六个方法，不过其中任何一个都不能简单地通过键入名字来查看\footnote{译者注: 
+如果简单的键入这些方法名(如\code{coef.aov}), 
+\R{}环境会报出错误信息~\code{``Error: object "coef.aov" not found''}.}。
+我们可以通过下面两种方法查看这种方法
+
+\findex{getAnywhere}
+\findex{getS3method}
+\begin{example}
+> getAnywhere("coef.aov")
+A single object matching 'coef.aov' was found
+It was found in the following places
+  registered S3 method for coef from namespace stats
+  namespace:stats
+with value
+
+function (object, ...)
+{
+    z <- object$coef
+    z[!is.na(z)]
+}
+
+> getS3method("coef", "aov")
+function (object, ...)
+{
+    z <- object$coef
+    z[!is.na(z)]
+}
+\end{example}
+
+读者可以参考文档\href{R-defs_cn.pdf}{\emph{~\R{}语言定义}}以得到关于这种机制更完整的讨论。

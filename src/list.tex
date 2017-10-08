@@ -1,0 +1,324 @@
+\chapter{列表和数据框}
+\hlabel{Lists and data frames}
+
+\section{列表}
+\hlabel{Lists}
+\cindex{列表}
+
+\R{} 的 \emph{列表}（list）是一个以对象的有序集合构成的对象。
+列表中包含的对象又称为它的\emph{分量}（components）。
+
+分量可以是不同的模式或类型，
+如一个列表可以同时包括数值向量，逻辑向量，矩阵，复向量，字符数组，函数等等。
+下面的例子演示怎么创建一个列表：
+
+\begin{example}
+> Lst <- list(name="Fred", wife="Mary", no.children=3,
+              child.ages=c(4,7,9))
+\end{example}
+\findex{list}
+
+分量常常会被\emph{编号的}（numbered），并且可以利用这种编号来
+访问分量。如果列表~\code{Lst} 有四个分量，
+这些分量则可以用 \code{Lst[[1]]},
+\code{Lst[[2]]}, \code{Lst[[3]]} 和 \code{Lst[[4]]} 独立访问。如果
+\code{Lst[[4]]} 是一个有下标的数组，那么 \code{Lst[[4]][1]} 就是
+该数组的第一个元素。
+
+因为 \code{Lst} 是一个列表，所以函数 \code{length(Lst)} 给出的
+仅仅是分量的数目(最高层次的)。
+
+列表的分量可以被\emph{命名}，这种情况下
+可以通过名字访问。此时，可以
+把字符串形式的分量名字放在列表名后面的双中括号中，或者干脆
+采用下面的形式
+
+\examp{
+> \var{name}\$\var{component\_name}
+}
+
+\noindent
+达到一样的目的。
+
+这种方法非常有用。使你在忘记分量编号的时候，
+也可以很容易找到想要的东西。
+
+因此在上面给定的例子中，
+
+\code{Lst\$name} 和 \code{Lst[[1]]} 返回结果都是
+\code{"Fred"},
+
+\code{Lst\$wife} 和 \code{Lst[[2]]} 返回的则是
+\code{"Mary"},
+
+而\code{Lst\$child.ages[1]} 和 \code{Lst[[4]][1]} 返回一样的
+数字 \code{4}。
+
+另外你同样可以在双中括号中使用列表分量的名字，
+即和\code{Lst\$name} 等价的 \code{Lst[["name"]]} 。
+当分量的名字保存在另外一个变量中时，这种方法
+特别的有用。就如下面的例子所示
+
+\begin{example}
+> x <- "name"; Lst[[x]]
+\end{example}
+
+这里特别要注意一下 \code{Lst[[1]]} 和 \code{Lst[1]} 的差别。
+\samp{\code{[[\var{\dots{}}]]}} 是用来选择单个
+元素的操作符，而 \samp{\code{[\var{\dots{}}]}} 是一个更为一般
+的下标操作符。 因此前者得到的是列表 \code{Lst} 中的\emph{第一个对象},
+并且含有分量名字的命名列表（named list）中的分量名字会被\emph{排除在外}的
+\footnote{译者注: 就是返回的对象不包括原来列表中该对象的名字(分量名字).}。
+后者得到的则是\emph{列表 \code{Lst} 中仅仅由第一个元素
+构成的子列表。如果是命名列表，
+分量名字会传给子列表的。}
+
+分量名字可以简写\footnote{译者注：当然这里的简写指的是在原来命名的基础上，
+采用开头\emph{连续的}几个字母，不是随便取得。}，原则是只要能很好的区分所有分量就行。
+因此 \code{Lst\$coefficients} 可以简写为 \code{Lst\$coe} 而 \code{Lst\$covariance}
+可以简写成 \code{Lst\$cov}。
+
+名字向量（记录分量名字的向量）可以简单地看作是列表的一个属性，能像其他属性一样
+操作。除了列表，其他的结构对象也
+可能会给出一个类似的\emph{名字}(names)属性。
+
+\section{构建和修改列表}
+\hlabel{Constructing and modifying lists}
+
+可以通过函数 \code{list()} 将已有的对象构建成
+列表。下面的命令
+
+\examp{
+> Lst <- list(\var{name\_1}=\var{object\_1}, \var{\dots{}}, \var{name\_m}=\var{object\_m})
+}
+
+\noindent
+将创建一个含有 \rmath{m} 个分量的列表 \code{Lst}。它的分量分别是 \var{object\_1},
+\dots{}, \var{object\_m}，分量名则是由
+参数得到（命名没有特定要求）。如果这些名字
+被忽略了，那么分量只有被编号了。用于创建列表
+的分量只是原来对象的一份\emph{拷贝}，因此
+原来的对象没有受到任何影响。
+
+和其他所有被下标索引的对象一样，列表是可以
+扩充分量的。如
+
+\begin{example}
+> Lst[5] <- list(matrix=Mat)
+\end{example}
+
+\subsection{列表连接}
+\hlabel{Concatenating lists}
+\cindex{列表连接}
+
+\findex{c}
+当连接函数 \code{c()} 的参数中有列表对象时，
+结果就是一个列表模式的对象。它的分量
+是那些当作参数的列表。
+
+\begin{example}
+> list.ABC <- c(list.A, list.B, list.C)
+\end{example}
+
+前面提到过连接函数处理向量对象的情况。这种情况下，
+这些向量对象将会被合并成一个大的的向量结构。
+此时，所有的其他特性，如 \code{dim} 等，都会
+被忽略。
+
+
+\section{数据框}
+\hlabel{Data frames}
+\cindex{数据框}
+
+\emph{数据框}（data frame）是一个属于 \code{"data.frame"} 类的列表。不过，对于
+可能属于数据框的列表对象有下面一些限制条件，
+
+\begin{itemize}
+\item
+分量必须是向量(数值, 字符, 逻辑)，
+因子，数值矩阵，列表或者其他数据框;
+\item
+矩阵，列表和数据框为新的数据框提供了尽可能多的变量，
+因为它们各自拥有列，元素或者变量;
+\item
+数值向量，逻辑值，因子保持原有格式，而字符
+向量会被强制转换成因子并且它的水平就是
+向量中出现的独立值;
+\item
+在数据框中以变量形式出现的向量结构必须
+\emph{长度一致}，矩阵结构必须有一样的
+\emph{行数}.
+\end{itemize}
+
+数据框常常会被看作是一个由不同模式和属性的列构成的
+矩阵。它能以
+矩阵形式出现，行列可以通过
+矩阵的索引习惯访问。
+
+\subsection{创建数据框}
+\hlabel{Making data frames}
+
+可以通过函数\code{data.frame} 创建符合
+上面对列(分量)限制的数据框
+对象：
+\findex{data.frame}
+
+\begin{example}
+> accountants <- data.frame(home=statef, loot=incomes, shot=incomef)
+\end{example}
+
+符合数据框限制的列表可被函数
+\code{as.data.frame()}
+\emph{强制转换}成数据框。
+\findex{as.data.frame}
+
+从外部文件读取一个数据框最简单的方法是
+使用函数 \code{read.table()}。
+这个将在 \hlink{Reading data from
+files}{从文件中读取数据} 部分详细讨论。
+
+\subsection{\code{attach() 和 \code{detach()}}}
+\hlabel{attach() and detach()}
+\findex{attach}
+\findex{detach}
+
+用 \code{\$} 符号访问对象不是非常的方便，如\code{accountants\$statef}。
+一个非常有用的工具将会使列表或者数据框的分量可以通过
+它们的名字直接调用。而且这种调用
+是暂时性的，没有必要每次都显式的引用列表名字。
+
+函数 \code{attach()} 除了可以用目录路径作为参数，
+也可以使用数据框。假定数据框 \code{lentils}
+有三个变量 \code{lentils\$u}, \code{lentils\$v},
+\code{lentils\$w}，那么
+
+\begin{example}
+> attach(lentils)
+\end{example}
+
+\noindent
+将把数据框绑定在搜索路径的\w{位置2}（position 2）上\footnote{译者注：R 的搜索路径是一种层状结构，
+当前搜索位置是1，可以通过函数attach()设置搜索路径的位置2。}。如果
+\w{位置1}没有变量 \code{u}, \code{v} 或 \code{w}，那么
+\code{u}, \code{v} 和 \code{w} 直接在数据框中
+访问。因此，下面的命令
+
+\begin{example}
+> u <- v+w
+\end{example}
+
+\noindent
+实际上没有替换数据框中的变量 \code{u}，而是
+被处于搜索路径\w{位置 1}工作空间中的变量 \code{u} 
+所屏蔽\footnote{译者注:如果位置1中原先没有变量\code{u}, 执行命令\code{u <- v + w}后, 
+会自动在位置1中创建变量\code{u}.}。为了真正改变
+数据框中的数据，最简单的办法还是使用
+\code{\$} 符号：
+
+\begin{example}
+> lentils$u <- v+w
+\end{example}
+
+但是新的分量 \code{u} 是不可见的\footnote{译者注: \code{u}还是可以访问的, 
+这里指的是\code{u}的值没有发生变化, 读者可以自己测试一下.}，
+直到数据框绑定去除和重新绑定。
+
+去除一个数据框的绑定，可以使用
+
+\begin{example}
+> detach()
+\end{example}
+
+确切地说，该命令去掉了搜索路径中与
+\w{位置 2}的绑定。此时，
+\code{u}, \code{v} 和 \code{w} 将不再可见，但可以
+用 \code{lentils\$u} 类似的命令来查看这些变量。如果实体所处的环境位置值大于2，
+则可以通过把位置值直接传给\code{detach}的办法实现绑定去除，
+不过，最为安全的办法是直接使用名字指明位置，如
+\code{detach(lentils)} 和 \code{detach("lentils")}
+
+\begin{quotation}
+\emph{注意：}最新版本的 \R{} 里面，列表和数据框
+只能在位置 2 或更高的位置层次绑定。这样就不可以
+直接对绑定的列表和数据框赋值(因此，在一定程度上
+它们是静态的)\footnote{译者注: 在以后的\R{}版本里面, 可能会改变这个限制的.}。
+\end{quotation}
+
+\subsection{使用数据框}
+\hlabel{Working with data frames}
+
+下面的习惯可以使你很方便地在一个工作目录下
+同时处理不同的问题
+
+\begin{itemize}
+\item
+将每个独立的定义明确的问题所包含的变量放在一个数据框中, 并且赋予直观表意的名字;
+\item
+处理问题时，将相应的数据框绑定在\w{位置 2}上，在
+\w{第 1 层}的工作目录中存放操作值和临时变量；
+\item
+问题结束时，用 \code{\$} 形式的赋值命令把任何你想保留的变量
+加入数据框中，然后
+利用函数 \code{detach()} 将绑定去除；
+\item
+最后去掉工作目录中所有你不想要的变量，
+尽可能清空临时变量。
+\end{itemize}
+
+这样，就可以非常方便的在同一个目录下面处理多个
+含有类似名叫 \code{x}, \code{y} 和
+\code{z} 变量的问题。
+
+\subsection{绑定任意的列表}
+\hlabel{Attaching arbitrary lists}
+
+\code{attach()} 是一个泛型函数。它不仅允许搜索路径绑定
+目录和数据框，而且还可以绑定其他对象。
+所以任何其他 \code{"list"} 模式的对象
+都可以这样绑定：
+
+\begin{example}
+> attach(any.old.list)
+\end{example}
+
+任何被绑定的东西都可利用 \code{detach} 通过位置编号
+或者名字（最好采用名字）去除绑定。
+
+\subsection{管理搜索路径}
+\hlabel{Managing the search path}
+\findex{search}
+\cindex{搜索路径}
+
+函数 \code{search} 显示当前的搜索路径。它可以用来
+跟踪已被绑定或者绑定去除的列表和数据框(以及
+包)。最开始，它会给出
+
+\begin{example}
+> search()
+[1] ".GlobalEnv"   "Autoloads"    "package:base"
+\end{example}
+\noindent
+其中 \code{.GlobalEnv} 是工作空间\footnote{第二个术语的意义
+可以参考 \code{autoload}的帮助文件。}。
+
+\code{lentils} 被绑定后，我们可以看到
+
+\begin{example}
+> search()
+[1] ".GlobalEnv"   "lentils"      "Autoloads"    "package:base"
+> ls(2)
+[1] "u" "v" "w"
+\end{example}
+
+\noindent
+\code{ls} (或者 \code{objects}) 可以用来查看
+搜索路径中任何位置的内容。
+
+最后，我们去除数据框的绑定，并且确证
+它是否已从搜索路径中去除了。
+
+\begin{example}
+> detach("lentils")
+> search()
+[1] ".GlobalEnv"   "Autoloads"    "package:base"
+\end{example}

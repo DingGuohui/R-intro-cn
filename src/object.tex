@@ -1,0 +1,213 @@
+\chapter{对象及它们的模式和属性}
+\hlabel{Objects}
+\cindex{对象}
+\cindex{属性}
+
+\section{内在属性：模式和长度}
+\hlabel{The intrinsic attributes mode and length}
+
+~\R{} 操作的实体在技术上来说就是 \emph{对象}（object）。
+实数或复数向量，逻辑向量和字符串向量之类的对象属于
+``原子''（atomic）型的对象，因为它们的元素都是一样的类型
+或\emph{模式}\footnote{译者注：实际上~\R{} 已经有自己独立的函数 typeof()，仍然保留模式的概念主要是为了和 S 兼容。}。
+~\R{} 的对象类型包括\emph{数值型}\footnote{\emph{数值型}模式
+实际上是两种独立模式的混合模式，即\emph{整数型}（integer）和
+\emph{双精度型}（double）。具体可以参考手册。}（numeric）， \emph{复数型}（complex），
+\emph{逻辑型}（logical），\emph{字符型}（character）和\emph{原味型}（raw）。
+
+向量必须保证它的\emph{所有元素是一样的模式}。因此
+任何给定的向量必须明确属于\emph{逻辑性}，
+\emph{数值型}，\emph{复数型}，\emph{字符型}或者\emph{原味型}。(这里
+有个特定的例外就是``值''为
+\code{NA} 的元素。实际上\code{NA}有好几种形式的)。
+注意空向量也有自己的模式。
+例如，空的字符串向量将会被显示
+\code{character(0)} 和空的数值向量显示为 \code{numeric(0)}。
+
+~\R{} 同样操作被称为\emph{列表}的对象。这种对象在 ~\R{} 里面是一种
+\emph{列表}（list）模式。列表可以为任何模式的对象的有序
+序列。\emph{列表}被认为是一种``递归''结构而不是
+原子结构因为它们的元素可以以它们各自的方式
+单独列出。
+
+另外两种递归结构是\emph{函数}（function）和
+\emph{表达式}（expression）。构成 ~\R{}
+系统的函数对象以及其他类似的用户定义的函数对象都将在
+后面的内容中深入讨论。表达式
+对象是 ~\R{} 的高级部分，不是本文档的重点，我们只是
+在讨论 ~\R{} 统计建模中的\emph{公式}（formulae）时间接地提一下。
+
+一个对象的\emph{模式}（mode）是该对象基本要素的类型。
+这是专门用来描述一个对象``特征''（property）的术语。
+另外一个所有对象都有的特征是\emph{长度}（length）。函数
+\code{mode(\var{object})} 和 \code{length(\var{object})} 可用于
+任何数据对象以得到其模式和长度
+\footnote{注意 \code{length(\var{object})} 有时
+会返回一些没有意义的信息，如在\code{\var{object}}
+是一个对象的时候。}。
+
+一个对象更详细的特征常常通过
+\code{attributes(\var{object})} 得到，具体参见 \hlink{Getting and setting attributes}{返回和设定对象属性}.
+正因为这样，\emph{模式}和\emph{长度}又叫做一个对象的``内在
+属性''。
+\findex{mode}
+\findex{length}
+
+例如，如果 \code{z} 是一个长为 100 的复数向量，那么
+命令 \code{mode(z)} 就会得到字符串 \code{"complex"} 而
+\code{length(z)} 对应的是 \code{100}。
+
+~\R{} 可以在任何需要的时候对模式进行转换
+(当然，有些时候没有必要)。例如
+
+\begin{example}
+> z <- 0:9
+\end{example}
+
+\noindent
+我们可以进行如下转换
+
+\begin{example}
+> digits <- as.character(z)
+\end{example}
+
+\noindent
+这样，\code{digits} 就是一个字符向量 \code{c("0", "1", "2",
+\dots{}, "9")}。我们可以再一次\emph{强制转换}，或者说模式改变，
+以重建数值向量：
+
+\begin{example}
+> d <- as.integer(digits)
+\end{example}
+
+\noindent
+现在 \code{d} 和 \code{z} 就一样了\footnote{许多时候，
+从数值到字符的强制转换，然后再转回不总是可逆的。
+因为在数字的字符表示时有近似转换（roundoff）的问题。}。有一系列
+类似 \code{as.\var{something}()} 的函数，
+这些函数主要用于对象模式数据的强制转换，或者赋予某个
+对象一些先前没有的功能。读者
+可以参考不同的帮助文档以熟悉它们。
+
+\section{改变对象长度}
+\hlabel{Changing the length of an object}
+
+一个``空''的对象仍然有其模式的。例如
+
+\begin{example}
+> e <- numeric()
+\end{example}
+
+\noindent
+创建了一个数值模式的空向量结构 \code{e}。类似的是，
+\code{character()}是一个空的字符向量，等等。一旦
+一个任意长度的对象被创建，新元素可以通过给定一个在先前索引范围外的索引值
+\footnote{译者注：这里要小心一点。正整数，负整数，大于或小于原来的索引范围的值都有不同含义。}而加入。因此
+
+\begin{example}
+> e[3] <- 17
+\end{example}
+
+\noindent
+将创建一个长度为3的向量 \code{e}(此时，前两个元素
+都是 \code{NA})。这可以用于任何数据结构，
+并且提供了一种添加
+和第一个位置的对象模式一致的对象的方式。
+
+这种自动调整对象长度的方法是经常用到的，如
+等待输入的函数 \code{scan()}。(\hlink{The scan()
+function}{\code{scan()}函数}.)
+
+相反，删减一个对象的大小只需要用赋值操作。
+因此，如果 \code{alpha} 是一个长度为10的对象，那么
+
+\begin{example}
+> alpha <- alpha[2 * 1:5]
+\end{example}
+
+\noindent
+将创建一个由偶数索引位值上的元素构成的长度为5的对象
+(此时，老的索引将会被抛弃)。 
+我们可以用下面命令仅仅保留起始的三个值
+
+\begin{example}
+> length(alpha) <- 3
+\end{example}
+
+\noindent
+一个向量也可以用同样的办法扩充（扩充部分用缺损值）。
+
+\section{读取和设置属性}
+\hlabel{Getting and setting attributes}
+\findex{attr}
+\findex{attributes}
+
+函数 \code{attributes(\var{object})}
+\findex{attributes}
+给出对象当前定义的非内在属性（non-intrinsic attributes）的
+列表。函数 \code{attr(\var{object}, \var{name})}
+\findex{attr}
+可以用来选择特定的属性。这些函数很少用到\footnote{译者注:其实\code{attributes(\var{object})}是一个非常好用的函数. 
+特别在你对一个对象不熟悉的时候, 你可以先用这个函数看看该对象里面有什么. 另外一个类似的函数是\code{str(\var{object})}.}，
+只是在一些非常特殊的情况下,如为特定目的设计一些
+新属性时才使用。但是，这个概念是
+非常重要的。
+
+对属性进行赋值和删除操作必须特别小心，
+因为它们是 ~\R{} 对象系统的不可分割的一部分。
+
+当它位于一个赋值操作的左边是，它既可用于
+关联 \code{\var{object}} 的新属性也可用于
+改变一个已经存在的属性。例如, 下面的命令
+
+\begin{example}
+> attr(z, "dim") <- c(10,10)
+\end{example}
+
+\noindent
+允许 ~\R{} 把 \code{z} 当作一个 10×10 的矩阵。
+
+\section{对象的类}
+\hlabel{The class of an object}
+\cindex{类}
+
+~\R{} 里面的所有对象都属于一个\emph{类}（class），可以通过函数
+\code{class} 查看。对于简单的向量，就是对应的模式
+\code{"numeric"}，\code{"logical"}，\code{"character"} 或者 \code{"list"}，
+但是 \code{"matrix"}，\code{"array"}，\code{"factor"} 和
+\code{"data.frame"} 就可能是其他值。
+
+引入对象的\emph{类}属性有利于
+面向对象风格的\footnote{包 \code{methods} 提供了一种不同的方式
+调用`正式'的或者 `S4'中的类。}
+~\R{} 编程。比如说，如果一个对象属于
+\code{"data.frame"} 类，那么它将会以一种特定的方式显示\footnote{译者注: 即响应\code{print}函数}，
+函数 \code{plot()} 也会以特定的方式显示它的图形。
+其他相关的泛型函数\footnote{译者注：如果学过 Java 或者 C++ 泛型，理解会更深。顺便提醒一下，
+Java 从 1.5 （即5.0）版本才引进泛型概念。}（generic function，如\code{summary()}等）
+会把它作为一个参数，像对它的类一样对这个对象响应。
+
+可以用函数\code{unclass()}
+临时去掉一个对象的类作用。
+\findex{unclass}
+举例说，如果 \code{winter} 有一个 \code{"data.frame"} 的类，那么
+
+\begin{example}
+> winter
+\end{example}
+
+\noindent
+将会以和矩阵类似的数据框显示，而
+
+\begin{example}
+> unclass(winter)
+\end{example}
+
+\noindent
+就像一个普通的列表一样打印数据。仅仅在一些非常特殊的情况下，
+你才需要使用这个函数。 当然，如果你是想深入学习
+类和泛型函数，那就可能常常用到了。
+
+泛型函数和类将会在 \hlink{Object
+orientation}{面向对象} 部分进一步讨论，不过内容比较简略。
+
